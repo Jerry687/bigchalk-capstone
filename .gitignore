@@ -1,0 +1,27 @@
+# ----- NDA / client-confidential material — never commit -----
+*.xlsx
+*.xls
+*.pptx
+*.ppt
+Anonymized Data for Project.xlsx
+Big Chalk Summer 2026 NU Capstone Project.pptx
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# ----- OS / editor -----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ----- scratch / logs -----
+*.log
+debug.txt
+out.log
+result.txt

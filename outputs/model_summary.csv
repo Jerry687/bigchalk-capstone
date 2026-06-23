@@ -1,0 +1,10 @@
+,0
+brand,Brand 1
+channel,Channel 1
+n_weeks,156
+n_predictors_selected,10
+R2,0.8385
+adj_R2,0.8274
+in_sample_MAPE_pct,11.69
+holdout_MAPE_pct,19.61
+durbin_watson,0.809
