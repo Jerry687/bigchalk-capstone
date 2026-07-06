@@ -44,9 +44,7 @@ import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 
-# ---------------------------------------------------------------------------
 # 1. Data loading
-# ---------------------------------------------------------------------------
 
 def _parse_week(value) -> Optional[datetime]:
     """Extract a date from strings like 'WE 01/08/2023'."""
@@ -63,9 +61,7 @@ def load_slice(path: str, brand_sheet: str, channel: str) -> pd.DataFrame:
     return df
 
 
-# ---------------------------------------------------------------------------
 # 2. Transforms
-# ---------------------------------------------------------------------------
 
 def adstock(x: np.ndarray, decay: float = 0.5) -> np.ndarray:
     """Geometric adstock: a_t = x_t + decay * a_{t-1}. Captures media carryover."""
@@ -78,9 +74,7 @@ def adstock(x: np.ndarray, decay: float = 0.5) -> np.ndarray:
     return out
 
 
-# ---------------------------------------------------------------------------
 # 3. Predictor specification (families + expected signs)
-# ---------------------------------------------------------------------------
 
 # Columns that are decompositions of the target -> NEVER use as predictors.
 LEAKAGE_PREFIXES = ("Volume Sales", "Dollar Sales")
@@ -155,9 +149,7 @@ def assemble_matrix(df: pd.DataFrame, specs: list) -> pd.DataFrame:
     return pd.DataFrame(out, index=df.index)
 
 
-# ---------------------------------------------------------------------------
 # 4. Automated variable selection
-# ---------------------------------------------------------------------------
 
 def prune_by_vif(X: pd.DataFrame, threshold: float = 10.0) -> list:
     """Iteratively drop the highest-VIF predictor until all are below threshold."""
@@ -194,9 +186,7 @@ def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05) -> li
     return selected
 
 
-# ---------------------------------------------------------------------------
 # 5. Constrained final fit
-# ---------------------------------------------------------------------------
 
 def _bounds_from_signs(specs_by_name: dict, cols: list):
     """Translate sign priors into (lower, upper) bounds for each coefficient.
@@ -266,9 +256,7 @@ def constrained_fit(X: pd.DataFrame, y: pd.Series, specs_by_name: dict) -> FitRe
                      meta={"durbin_watson": float(sm.stats.durbin_watson(resid))})
 
 
-# ---------------------------------------------------------------------------
 # 6. End-to-end driver for one slice
-# ---------------------------------------------------------------------------
 
 def run_slice(path: str, brand_sheet: str, channel: str,
               media_decay: float = 0.5, vif_threshold: float = 10.0,
