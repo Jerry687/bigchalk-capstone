@@ -11,7 +11,7 @@ Design principles
 1. No target leakage.
 2. Marketing-mix framing.
 3. Two-stage estimation:
-       (a) automatedelection
+       (a) automated selection
        (b) constrained FINAL fit
 4. Adstock on media
 
