@@ -1,10 +1,13 @@
 ,0
 brand,Brand 1
 channel,Channel 1
-n_weeks,156
-n_predictors_selected,10
-R2,0.8385
-adj_R2,0.8274
-in_sample_MAPE_pct,11.69
-holdout_MAPE_pct,19.61
-durbin_watson,0.809
+target,Volume Sales
+model_weeks,104
+holdout_weeks,13
+n_predictors_selected,8
+n_forced,0
+R2,0.7981
+adj_R2,0.7811
+in_sample_MAPE_pct,9.78
+holdout_MAPE_pct,72.85
+durbin_watson,0.898

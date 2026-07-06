@@ -25,3 +25,6 @@ Thumbs.db
 debug.txt
 out.log
 result.txt
+
+# Client meeting transcripts (NDA)
+*_otter_ai_transcript.txt
