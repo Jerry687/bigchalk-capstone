@@ -4,10 +4,10 @@ channel,Channel 1
 target,Volume Sales
 model_weeks,104
 holdout_weeks,13
-n_predictors_selected,8
-n_forced,0
-R2,0.7981
-adj_R2,0.7811
-in_sample_MAPE_pct,9.78
-holdout_MAPE_pct,72.85
-durbin_watson,0.898
+n_predictors_selected,9
+n_forced,1
+R2,0.8282
+adj_R2,0.8117
+in_sample_MAPE_pct,9.96
+holdout_MAPE_pct,31.83
+durbin_watson,1.178

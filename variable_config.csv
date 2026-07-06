@@ -2,7 +2,7 @@ variable,family,sign,adstock_decay,coef_lower,coef_upper,role
 Price per Volume,Price,negative,,,,auto
 Total Category Price Per Volume,Category Price,positive,,,,auto
 Category P Price Per Volume,Category Price,positive,,,,auto
-ACV Weighted Distribution,Distribution,positive,,,,auto
+ACV Weighted Distribution,Distribution,positive,,,,force
 Avg Weekly Items per Store Selling,Distribution,positive,,,,auto
 Total Points of Distribution,Distribution,positive,,,,auto
 Weighted Weeks Price Reductions Only,Trade,positive,,,,auto
