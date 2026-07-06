@@ -8,24 +8,12 @@ in Phase 3 and to plug into the Phase 4 dashboard.
 
 Design principles
 -----------------
-1. No target leakage. The dependent variable is `Volume Sales`. Columns that are
-   algebraic decompositions of the target are EXCLUDED as predictors:
-       - "Volume Sales <merch condition>"  (components that sum to the target)
-       - "Dollar Sales ..."                (= Price per Volume * Volume Sales)
-   These are kept only for optional cross-checks, never as features.
-
-2. Marketing-mix framing. Predictors are grouped into causal families with an
-   expected coefficient SIGN. This drives the final constrained fit that coefficients be constrainable (positive / negative /
-   unconstrained / a custom range excluding 0).
-
+1. No target leakage.
+2. Marketing-mix framing.
 3. Two-stage estimation:
-       (a) automated variable selection (forward stepwise, VIF pruning) on
-           standardized data to choose a parsimonious, low-collinearity set;
-       (b) FINAL fit by bounded/sign-constrained least squares in original units
-           so coefficients are interpretable and contributions ("due-tos")
-           decompose additively. Ridge is available for the BUILD phase only.
-
-4. Adstock. Media spend is geometrically decayed before entering the model.
+       (a) automatedelection
+       (b) constrained FINAL fit
+4. Adstock on media
 
 Author: Capstone team (Feifan, Boqi, Jiahao) | June 2026
 """
