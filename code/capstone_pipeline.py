@@ -15,8 +15,7 @@ Design principles
    These are kept only for optional cross-checks, never as features.
 
 2. Marketing-mix framing. Predictors are grouped into causal families with an
-   expected coefficient SIGN. This drives the final constrained fit per Alex's
-   requirement that coefficients be constrainable (positive / negative /
+   expected coefficient SIGN. This drives the final constrained fit that coefficients be constrainable (positive / negative /
    unconstrained / a custom range excluding 0).
 
 3. Two-stage estimation:
