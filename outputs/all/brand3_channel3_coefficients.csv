@@ -1,0 +1,8 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,1072614.4432493644,(intercept),(intercept),,,1072614.443249364
+ACV Weighted Distribution,2.7245476492924613e-17,Distribution,positive,yes,-0.1614449091712952,3.1864172401789357e-15
+Seasonality_Index,786938.7038418393,Seasonality,positive,,21.936224550742246,786938.7038418395
+Price per Volume,-175107.65937679532,Price,negative,,-11.325892206538573,-1239517.7478492798
+Gas_Price,107026.31345542669,Macro,unconstrained,,3.4730756169036283,346889.7765948912
+BRAND 3_Amazon_Spend,44.86134161755382,Media,positive,,3.21983091431217,37771.115032830916
+_C_COMPETITOR7__Weighted Weeks Feature and Display,-395364.61769313965,Competitive,negative,,-2.6863125312906537,-21524.62292278944

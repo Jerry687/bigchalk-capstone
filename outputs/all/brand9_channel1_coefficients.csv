@@ -1,0 +1,8 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,26248.738356937854,(intercept),(intercept),,,26248.738356937847
+ACV Weighted Distribution,17826.734243301304,Distribution,positive,yes,14.022780719917929,377057.4194929902
+Weighted Weeks Feature and Display,1480306.754690195,Trade,positive,,4.414578576443654,6888.19382994594
+_C_COMPETITOR3__Weighted Weeks Price Reductions Only,-35829.85897759806,Competitive,negative,,-2.8413627209295886,-27618.62645332401
+_C_COMPETITOR6__Weighted Weeks Display Only,-117812.01361788978,Competitive,negative,,-2.482245005536108,-29683.956090420368
+_C_COMPETITOR10__ACV Weighted Distribution,-6630.966341699806,Competitive,negative,,-2.522170863400064,-184368.2883570608
+Median_CPI,-4282.407158775006,Macro,unconstrained,,-2.1059769020918866,-16135.56873375576

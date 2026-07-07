@@ -1,0 +1,6 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,8659.13362065552,(intercept),(intercept),,,8659.133620655517
+ACV Weighted Distribution,575.7098840894615,Distribution,positive,yes,14.517939922569697,12792.379342182294
+Price per Volume,-2498.638584258486,Price,negative,,-3.7247403272798123,-30849.476257577055
+Total Category Price Per Volume,3754.048865471801,Category Price,positive,,5.117448872963727,37157.93472841724
+T5YIE,-5333.991930569426,Macro,unconstrained,,-5.39956704028939,-12374.989499880936

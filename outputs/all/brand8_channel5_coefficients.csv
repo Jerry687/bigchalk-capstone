@@ -1,0 +1,5 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,-2704.6314965464203,(intercept),(intercept),,,-2704.63149654642
+ACV Weighted Distribution,1509.1625271147198,Distribution,positive,yes,13.566557021697166,58495.29487277605
+Avg Weekly Items per Store Selling,23786.643981019814,Distribution,positive,,13.261299748065586,71298.84514522998
+Price per Volume,-4070.9328790649806,Price,negative,,-6.691902229741478,-84082.30470858383

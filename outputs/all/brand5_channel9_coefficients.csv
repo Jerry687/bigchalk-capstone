@@ -1,0 +1,12 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,-238.8289717394925,(intercept),(intercept),,,-238.82897173949246
+ACV Weighted Distribution,81.21090707590565,Distribution,positive,yes,12.915490713511518,1660.8177162452384
+Seasonality_Index,7499.286591128234,Seasonality,positive,,12.983557477100119,7499.286591128236
+_C_COMPETITOR5__ACV Weighted Distribution,-15.320231837298024,Competitive,negative,,-1.4053723808792986,-336.27043038597003
+_C_COMPETITOR4__Weighted Weeks Feature and Display,-703.2754358411526,Competitive,negative,,-2.416218739544704,-181.12433327873435
+Unemployment_Rate,-483.40908773060846,Macro,unconstrained,,-5.00830372254174,-1967.5679503496785
+_C_COMPETITOR2__Avg Weekly Items per Store Selling,-107.59336015185528,Competitive,negative,,-1.185778885797015,-447.12578286291836
+_C_COMPETITOR6__Weighted Weeks Feature Only,-820.6213094588322,Competitive,negative,,-2.2629872720686555,-139.99818863406279
+CFNAI,263.0045864336937,Macro,unconstrained,,2.52416999534712,-39.551843575220865
+_C_COMPETITOR2__Weighted Weeks Display Only,-1240.6608182327207,Competitive,negative,,-1.3340641463395955,-67.85272480974828
+_C_COMPETITOR3__Weighted Weeks Price Reductions Only,-359.48514112144125,Competitive,negative,,-0.860944443025491,-62.9591621558037

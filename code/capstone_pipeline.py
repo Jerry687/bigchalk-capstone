@@ -274,6 +274,19 @@ def assemble_matrix(df: pd.DataFrame, specs: list) -> pd.DataFrame:
 # 4. Automated variable selection
 # ---------------------------------------------------------------------------
 
+def _vif_all(X: pd.DataFrame) -> pd.Series:
+    """All VIFs at once via the diagonal of the inverse correlation matrix.
+    Identity: VIF_i = [corr(X)^-1]_ii  (equivalent to the k auxiliary
+    regressions statsmodels runs, ~100x faster for wide X)."""
+    R = np.corrcoef(X.values, rowvar=False)
+    R = np.atleast_2d(R)
+    try:
+        inv = np.linalg.inv(R)
+    except np.linalg.LinAlgError:
+        inv = np.linalg.pinv(R)
+    return pd.Series(np.diag(inv), index=X.columns)
+
+
 def prune_by_vif(X: pd.DataFrame, threshold: float = 10.0,
                  protect: Optional[list] = None) -> list:
     """Iteratively drop the highest-VIF predictor until all are below
@@ -282,18 +295,40 @@ def prune_by_vif(X: pd.DataFrame, threshold: float = 10.0,
     protect = set(protect or [])
     keep = list(X.columns)
     while len(keep) > 1:
-        Xc = sm.add_constant(X[keep])
-        vifs = {keep[i]: variance_inflation_factor(Xc.values, i + 1)
-                for i in range(len(keep))}
-        droppable = {c: v for c, v in vifs.items() if c not in protect}
-        if not droppable:
+        vifs = _vif_all(X[keep])
+        droppable = vifs.drop([c for c in keep if c in protect])
+        if droppable.empty:
             break
-        worst, val = max(droppable.items(), key=lambda kv: kv[1])
-        if val > threshold:
+        worst = droppable.idxmax()
+        if droppable[worst] > threshold:
             keep.remove(worst)
         else:
             break
     return keep
+
+
+def _pvalue_of_last(Xd: np.ndarray, y: np.ndarray) -> float:
+    """p-value of the LAST column's coefficient in OLS (Xd includes the
+    intercept column). Direct normal-equations solve - same numbers as
+    statsmodels OLS, without the per-call SVD/wrapper overhead."""
+    from scipy import stats as _st
+    n, k = Xd.shape
+    dof = n - k
+    if dof <= 0:
+        return 1.0
+    XtX = Xd.T @ Xd
+    try:
+        XtX_inv = np.linalg.inv(XtX)
+    except np.linalg.LinAlgError:
+        return 1.0
+    beta = XtX_inv @ (Xd.T @ y)
+    resid = y - Xd @ beta
+    s2 = float(resid @ resid) / dof
+    var = s2 * XtX_inv[-1, -1]
+    if var <= 0:
+        return 1.0
+    t = beta[-1] / np.sqrt(var)
+    return 2.0 * float(_st.t.sf(abs(t), dof))
 
 
 def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05,
@@ -302,12 +337,14 @@ def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05,
     `start_with` (force-include) variables are seeded into the model."""
     selected = [c for c in (start_with or []) if c in X.columns]
     remaining = [c for c in X.columns if c not in selected]
+    yv = y.values.astype(float)
+    ones = np.ones((len(X), 1))
     while remaining:
+        base = X[selected].values if selected else np.empty((len(X), 0))
         best_p, best_c = 1.0, None
         for c in remaining:
-            cols = selected + [c]
-            model = sm.OLS(y, sm.add_constant(X[cols])).fit()
-            p = model.pvalues.get(c, 1.0)
+            Xd = np.column_stack([ones, base, X[c].values])
+            p = _pvalue_of_last(Xd, yv)
             if p < best_p:
                 best_p, best_c = p, c
         if best_c is not None and best_p < p_enter:
@@ -372,7 +409,9 @@ def constrained_fit(X: pd.DataFrame, y: pd.Series, specs_by_name: dict) -> FitRe
     ss_tot = float(np.sum((y.values - y.values.mean()) ** 2))
     r2 = 1 - ss_res / ss_tot
     adj_r2 = 1 - (1 - r2) * (n - 1) / (n - k - 1) if n - k - 1 > 0 else np.nan
-    mape = float(np.mean(np.abs(resid / y.values))) * 100
+    nz = y.values != 0   # MAPE over non-zero actuals only (zero-sales weeks
+    #                        would divide by zero in partial-distribution channels)
+    mape = float(np.mean(np.abs(resid[nz] / y.values[nz]))) * 100 if nz.any() else np.nan
 
     coef = pd.Series(beta, index=["const"] + cols)
 
@@ -466,15 +505,23 @@ def run_slice(path: str, brand_sheet: str, channel: str,
               media_decay: Optional[float] = None,
               vif_threshold: Optional[float] = None,
               p_enter: Optional[float] = None,
-              holdout_weeks: Optional[int] = None) -> dict:
-    """Full pipeline for a single Brand x Channel slice, config-driven."""
+              holdout_weeks: Optional[int] = None,
+              df: Optional[pd.DataFrame] = None) -> dict:
+    """Full pipeline for a single Brand x Channel slice, config-driven.
+    Pass `df` (a full brand-sheet DataFrame) to skip re-reading the Excel
+    file — used by the Phase 3 batch runner."""
     cfg = config or ModelConfig()
     if media_decay is not None: cfg.default_media_decay = media_decay
     if vif_threshold is not None: cfg.vif_threshold = vif_threshold
     if p_enter is not None: cfg.p_enter = p_enter
     if holdout_weeks is not None: cfg.holdout_weeks = holdout_weeks
 
-    df_full = load_slice(path, brand_sheet, channel)
+    if df is not None:
+        df_full = df[df["Geography"] == channel].copy()
+        df_full["date"] = df_full["Time"].apply(_parse_week)
+        df_full = df_full.sort_values("date").reset_index(drop=True)
+    else:
+        df_full = load_slice(path, brand_sheet, channel)
     if cfg.target not in df_full.columns:
         raise ValueError(f"Target '{cfg.target}' not in data")
 
@@ -559,7 +606,9 @@ def run_slice(path: str, brand_sheet: str, channel: str,
                                X_all[selected].iloc[split:].values])
         pred_te = Xte @ fit.coef.values
         yte = y.iloc[split:].values
-        holdout_mape = float(np.mean(np.abs((yte - pred_te) / yte))) * 100
+        nz = yte != 0
+        holdout_mape = float(np.mean(np.abs((yte[nz] - pred_te[nz]) / yte[nz]))) * 100 \
+            if nz.any() else np.nan
 
     # --- contribution reporting (training window) ---
     dates_tr = df["date"].iloc[:split]

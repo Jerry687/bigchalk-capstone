@@ -1,0 +1,5 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,6048193.934586985,(intercept),(intercept),,,6048193.934586984
+ACV Weighted Distribution,776.1911283545501,Distribution,positive,yes,2.0212553104734416,30977.061943286517
+PCEC96,-387.88879103879964,Macro,unconstrained,,-7.763507944938395,-6023774.836422949
+_C_Competitor6__Weighted Weeks Display Only,-121458.24850030028,Competitive,negative,,-3.094140479676767,-46065.89242692356

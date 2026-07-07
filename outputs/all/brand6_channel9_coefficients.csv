@@ -1,0 +1,6 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,-11892.225856770727,(intercept),(intercept),,,-11892.22585677073
+ACV Weighted Distribution,5.816113682013476e-25,Distribution,positive,yes,-9.465009453105987,6.365654788263038e-24
+Total Points of Distribution,414.18666894754034,Distribution,positive,,11.520901634735955,15498.598953696828
+Seasonality_Index,93834.24065675751,Seasonality,positive,,8.652855367895025,93834.24065675751
+Median_CPI,4216.531414262761,Macro,unconstrained,,6.416909445068534,14403.33632790432

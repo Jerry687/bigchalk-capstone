@@ -1,0 +1,6 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,-1214.3534558161125,(intercept),(intercept),,,-1214.3534558161123
+ACV Weighted Distribution,486.33565239959245,Distribution,positive,yes,9.980102494416622,2352.150103032972
+Avg Weekly Items per Store Selling,1180.3353760143373,Distribution,positive,,3.358327586553774,2193.8214274569455
+Brand 0210_Instacart_Spend,0.0034780012840087693,Media,positive,,2.271231332292243,130.33953394296273
+Weighted Weeks Price Reductions Only,17414.37169625803,Trade,positive,,0.9933835500934448,68.13207059800001

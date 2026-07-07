@@ -1,0 +1,10 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,376045.85994927754,(intercept),(intercept),,,376045.85994927766
+ACV Weighted Distribution,3520.5910410251686,Distribution,positive,yes,5.424325849319964,112907.27481487712
+Price per Volume,-30130.727575746132,Price,negative,,-7.995459355060245,-319121.3995131022
+Seasonality_Index,87885.77590273095,Seasonality,positive,,8.525229537179534,87885.77590273095
+Gas_Price,19126.29000158818,Macro,unconstrained,,3.142018855927166,61991.43230793602
+Weighted Weeks Feature and Display,655074.8407807726,Trade,positive,,3.8440058409158904,2606.846218554529
+Brand 0210_TikTok_Spend,0.17854429102180802,Media,positive,,3.659980028222018,6221.31931592754
+_C_Competitor8__Avg Weekly Items per Store Selling,-37560.77516726898,Competitive,negative,,-4.725974022166569,-105150.96042142203
+Unemployment_Rate,-16698.738431212852,Macro,unconstrained,,-5.016799401055479,-67967.07671088846

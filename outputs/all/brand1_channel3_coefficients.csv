@@ -1,0 +1,9 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,79181.06333610673,(intercept),(intercept),,,79181.06333610673
+ACV Weighted Distribution,1432.5700397340704,Distribution,positive,yes,8.207983233679142,74588.96662425614
+Seasonality_Index,38427.26950929817,Seasonality,positive,,17.094974431161166,38427.26950929816
+Price per Volume,-9367.563104685783,Price,negative,,-9.300922522161,-84733.08381528413
+_C_Competitor3__Weighted Weeks Display Only,-41724.36118332651,Competitive,negative,,-4.305989825623079,-31571.393528984354
+T5YIE,-18032.854265244507,Macro,unconstrained,,-4.015064015107658,-41836.65537744094
+Brand 1_Instacart_Spend,0.2394539360343515,Media,positive,,3.0236238397111292,3273.404455445783
+Brand 1_Amazon_Spend,0.5003045295301263,Media,positive,,2.4721799597087744,3229.667533234163

@@ -1,0 +1,8 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,146053.9493966022,(intercept),(intercept),,,146053.94939660217
+ACV Weighted Distribution,609.0413882012663,Distribution,positive,yes,4.783680235630464,29675.17949871278
+Price per Volume,-16572.288662629562,Price,negative,,-14.973693914009944,-142168.00897592402
+Seasonality_Index,16673.221693145984,Seasonality,positive,,6.041701151325302,16673.221693145984
+_C_Competitor7__Avg Weekly Items per Store Selling,-2242.133931690886,Competitive,negative,,-2.912844974794884,-19485.108495765875
+Gas_Price,6385.1921939935055,Macro,unconstrained,,2.91486950141907,20695.451634072353
+T5YIE,-7092.861233258287,Macro,unconstrained,,-2.5365541630752637,-16455.60856263118

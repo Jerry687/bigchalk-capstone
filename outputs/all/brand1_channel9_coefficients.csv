@@ -1,0 +1,8 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,793.929006252195,(intercept),(intercept),,,793.9290062521949
+ACV Weighted Distribution,74.62963677501187,Distribution,positive,yes,10.096276585705322,3296.6657294451197
+_C_Competitor1__Weighted Weeks Special Pack Only,-2168.8758870493557,Competitive,negative,,-3.769292980053182,-1113.3701747960583
+Seasonality_Index,96.39775715595263,Seasonality,positive,,1.7108111576668772,96.39775715595263
+Unemployment_Rate,-601.492674641277,Macro,unconstrained,,-4.7982171119544565,-2448.1908574581976
+Avg Weekly Items per Store Selling,530.7311367132505,Distribution,positive,,3.435160607726669,1566.8188850374697
+Brand 1_Instacart_CTV_Spend,0.050735300667255956,Media,positive,,1.8394529911340147,447.6947164306075

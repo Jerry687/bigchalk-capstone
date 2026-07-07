@@ -1,0 +1,9 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,-58374.81857979014,(intercept),(intercept),,,-58374.818579790146
+ACV Weighted Distribution,368.21355225526133,Distribution,positive,yes,17.417431119345956,11768.463325409391
+UMCSENT,379.239899390948,Macro,unconstrained,,10.256260005173191,25302.59436436452
+Gas_Price,9880.946957073382,Macro,unconstrained,,7.45906429408887,32025.764242665893
+CFNAI,1598.4040510571467,Macro,unconstrained,,2.0378358093649718,-240.37537844744014
+Brand 1_Instacart_Spend,0.0343003524865253,Media,positive,,1.1282641854972213,468.8957237965195
+_C_Competitor3__Weighted Weeks Price Reductions Only,-16.184055200834372,Competitive,negative,,-0.024626407459172495,-3.4474214836356323
+_C_Competitor6__Weighted Weeks Price Reductions Only,-694.1165446315322,Competitive,negative,,-1.0548003206840595,-90.87794374494675

@@ -1,0 +1,6 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,-518.177313106549,(intercept),(intercept),,,-518.1773131065491
+ACV Weighted Distribution,1347.4258374310755,Distribution,positive,yes,10.100891755114963,6430.760892816338
+Seasonality_Index,5190.06679849996,Seasonality,positive,,7.581746024778294,5190.06679849996
+Price per Volume,-406.23990104037307,Price,negative,,-3.1294468816859076,-3816.026285430457
+BRAND 3_Absco_Spend,0.4337853750159866,Media,positive,,2.794650443800846,347.64355568106015

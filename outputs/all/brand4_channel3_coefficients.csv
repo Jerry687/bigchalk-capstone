@@ -1,0 +1,8 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,6800.638508429624,(intercept),(intercept),,,6800.638508429624
+ACV Weighted Distribution,6.616269642209906e-17,Distribution,positive,yes,-1.0760042459143966,6.723159843504872e-15
+Seasonality_Index,333349.27978434844,Seasonality,positive,,20.317389396529162,333349.27978434844
+Price per Volume,-65728.78679651849,Price,negative,,-5.521770319362043,-382177.5678659205
+SNAP_Participants,0.008706270875880223,Macro,unconstrained,,2.9673228165755505,366024.4924452153
+_C_COMPETITOR3__Weighted Weeks Feature and Display,-74075.80462503119,Competitive,negative,,-2.533283316034192,-2590.56574401259
+Gas_Price,4555.191027180647,Macro,unconstrained,,0.1724816664508348,14764.118717625766

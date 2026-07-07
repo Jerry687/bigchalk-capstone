@@ -1,0 +1,5 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,10396.06259396533,(intercept),(intercept),,,10396.062593965327
+ACV Weighted Distribution,310.8927801740955,Distribution,positive,yes,38.18393407516555,4644.152345674519
+T5YIE,-3845.3785109896908,Macro,unconstrained,,-2.084490446442871,-8921.37058247952
+Median_CPI,-417.59137319496637,Macro,unconstrained,,-1.2348041204055464,-1573.4314965834021

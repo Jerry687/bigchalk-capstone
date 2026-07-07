@@ -1,0 +1,8 @@
+,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
+const,4.353209773527048,(intercept),(intercept),,,4.353209773527048
+ACV Weighted Distribution,1028.8321379228094,Distribution,positive,yes,229.57342112795266,2.069381786485435
+Weighted Weeks Display Only,252136.99661916838,Trade,positive,,5.349481051124205,0.02189087498677271
+Unemployment_Rate,-0.7469577425424048,Macro,unconstrained,,-5.721184383424454,-3.040261657867307
+UMCSENT,-0.010017022323393299,Macro,unconstrained,,-1.6386939574300565,-0.6683280240150136
+_C_Competitor8__Avg Weekly Items per Store Selling,-0.2543124919981803,Competitive,negative,,-0.952794646323239,-0.7405987832554335
+Brand 0210_Amazon_Spend,1.8548074876889586e-05,Media,positive,,2.898828731017859,0.2119790363277936
