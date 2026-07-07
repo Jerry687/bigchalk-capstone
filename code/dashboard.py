@@ -1,15 +1,21 @@
 """
 Phase 4: Plotly Dash dashboard for the Big Chalk regression engine.
 
-Tabs:
-  1. Run & diagnostics  — pick Brand x Channel x target, run, inspect fit.
-  2. Variable controls  — per-brand editable config: family, sign, custom
+Load ANY client datafile from the UI (per project scope: "an input of a
+datafile with all products*channels and variables"), then:
+
+  1. Run & diagnostics  — pick Product x Channel x target, run, inspect fit.
+  2. Variable controls  — per-product editable config: family, sign, custom
      coefficient bounds, adstock decay, role (auto / force / exclude).
-     Saved to ../configs/variable_config_<brand>.csv; every run reads it.
+     Saved per dataset+product under ../configs/; every run reads it.
   3. Contributions      — due-tos by model year with YoY change, and average
-     weekly contribution per driver (media averaged over execution weeks only).
+     weekly contribution per driver (media over execution weeks only).
   4. Batch overview     — all-slices summary from run_all.py; click a row to
-     load that Brand x Channel into the controls, then hit Run model.
+     load that slice into the controls, then hit Run model.
+
+Product sheets are auto-detected: sheets named "Brand *" if present,
+otherwise any sheet containing both `Geography` and `Time` columns.
+Target choices come from the loaded data, not from code.
 
     pip install dash
     cd code && python dashboard.py     # http://127.0.0.1:8050
@@ -29,48 +35,79 @@ from dash import Dash, dcc, html, dash_table, Input, Output, State
 
 import capstone_pipeline as cp
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
-DATA = os.path.join(ROOT, "Anonymized Data for Project.xlsx")
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_DATA = os.path.join(ROOT, "Anonymized Data for Project.xlsx")
 CFG_DIR = os.path.join(ROOT, "configs")
 SUMMARY = os.path.join(ROOT, "outputs", "all_models_summary.csv")
 os.makedirs(CFG_DIR, exist_ok=True)
 
-TARGET_CHOICES = ["Volume Sales", "Dollar Sales"]
 WINDOW_CHOICES = [52, 104, 156]
 CFG_COLS = ["variable", "family", "sign", "adstock_decay",
             "coef_lower", "coef_upper", "role"]
+PREFERRED_TARGETS = ["Volume Sales", "Dollar Sales", "Unit Sales"]
 
 
-@lru_cache(maxsize=12)
-def load_sheet(brand: str) -> pd.DataFrame:
-    return pd.read_excel(DATA, sheet_name=brand)
+def _slug(s: str) -> str:
+    return "".join(ch for ch in str(s).lower() if ch.isalnum())
 
 
-@lru_cache(maxsize=1)
-def brand_names() -> tuple:
-    xl = pd.ExcelFile(DATA)
-    return tuple(s for s in xl.sheet_names if s.lower().startswith("brand"))
+@lru_cache(maxsize=24)
+def load_sheet(path: str, sheet: str) -> pd.DataFrame:
+    return pd.read_excel(path, sheet_name=sheet)
 
 
-def channels_for(brand: str) -> list:
-    g = load_sheet(brand)["Geography"].unique()
+@lru_cache(maxsize=4)
+def detect_product_sheets(path: str) -> tuple:
+    """Sheets named 'Brand *' if any; otherwise any sheet that has both
+    Geography and Time columns (handles arbitrary client naming)."""
+    xl = pd.ExcelFile(path)
+    named = tuple(s for s in xl.sheet_names if s.lower().startswith("brand"))
+    if named:
+        return named
+    found = []
+    for s in xl.sheet_names:
+        try:
+            head = pd.read_excel(xl, sheet_name=s, nrows=1)
+        except Exception:
+            continue
+        if {"Geography", "Time"} <= set(map(str, head.columns)):
+            found.append(s)
+    return tuple(found)
+
+
+def channels_for(path: str, sheet: str) -> list:
+    g = load_sheet(path, sheet)["Geography"].unique()
     return [c for c in g if isinstance(c, str)]
 
 
-def cfg_path(brand: str) -> str:
-    return os.path.join(CFG_DIR, f"variable_config_{brand.replace(' ', '').lower()}.csv")
+def target_choices(path: str, sheet: str) -> list:
+    """Candidate dependent variables from the data itself: preferred sales
+    measures first, then any other numeric non-competitive column."""
+    df = load_sheet(path, sheet)
+    num = [c for c in df.columns
+           if pd.api.types.is_numeric_dtype(df[c])
+           and not str(c).startswith("_C_")]
+    pref = [c for c in PREFERRED_TARGETS if c in df.columns]
+    rest = sorted(c for c in num if c not in pref)
+    return pref + rest
 
 
-def load_or_create_config(brand: str, regenerate: bool = False) -> pd.DataFrame:
-    """Per-brand variable config; generated from heuristics on first use.
-    ACV Weighted Distribution defaults to role=force (validated: a volume
-    model without a distribution term cannot track shelf-presence change)."""
-    path = cfg_path(brand)
-    if os.path.exists(path) and not regenerate:
-        return pd.read_csv(path)
-    cfg = cp.generate_variable_config(load_sheet(brand))
+def cfg_path(path: str, sheet: str) -> str:
+    ds = _slug(os.path.splitext(os.path.basename(path))[0])[:24]
+    return os.path.join(CFG_DIR, f"varconfig_{ds}_{_slug(sheet)}.csv")
+
+
+def load_or_create_config(path: str, sheet: str,
+                          regenerate: bool = False) -> pd.DataFrame:
+    """Per-dataset, per-product variable config; generated from heuristics on
+    first use. ACV Weighted Distribution defaults to role=force (validated:
+    a volume model without a distribution term cannot track shelf change)."""
+    p = cfg_path(path, sheet)
+    if os.path.exists(p) and not regenerate:
+        return pd.read_csv(p)
+    cfg = cp.generate_variable_config(load_sheet(path, sheet))
     cfg.loc[cfg["variable"] == "ACV Weighted Distribution", "role"] = "force"
-    cfg.to_csv(path, index=False)
+    cfg.to_csv(p, index=False)
     return cfg
 
 
@@ -88,23 +125,40 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
                              "margin": "0 auto", "maxWidth": "1200px",
                              "padding": "16px"}, children=[
     html.H2("Big Chalk — Marketing-Mix Regression Engine"),
+    dcc.Store(id="datapath"),
     dcc.Store(id="batch_sel"),
+
+    html.Div(style={"display": "flex", "gap": "12px", "alignItems": "flex-end",
+                    "flexWrap": "wrap", "marginBottom": "10px"}, children=[
+        html.Div(style={"flex": 1, "minWidth": "380px"}, children=[
+            html.Label("Data file (.xlsx — one sheet per product, rows = "
+                       "channel × week)"),
+            dcc.Input(id="datafile_input", type="text",
+                      value=DEFAULT_DATA if os.path.exists(DEFAULT_DATA) else "",
+                      style={"width": "100%", "height": "34px",
+                             "padding": "0 8px"}),
+        ]),
+        html.Button("Load data", id="load_data", n_clicks=0,
+                    style={**BTN, "background": "#2b6cb0", "color": "white"}),
+        html.Div(id="load_status", style={"color": "#4a5568",
+                                          "fontSize": "13px",
+                                          "maxWidth": "360px"}),
+    ]),
+
     html.Div(style={"display": "flex", "gap": "12px", "flexWrap": "wrap",
                     "alignItems": "flex-end"}, children=[
-        html.Div([html.Label("Brand"),
-                  dcc.Dropdown(id="brand", options=list(brand_names()),
-                               value="Brand 1", clearable=False,
-                               style={"width": "160px"})]),
+        html.Div([html.Label("Product"),
+                  dcc.Dropdown(id="brand", clearable=False,
+                               style={"width": "180px"})]),
         html.Div([html.Label("Channel"),
                   dcc.Dropdown(id="channel", clearable=False,
                                style={"width": "160px"})]),
         html.Div([html.Label("Target"),
-                  dcc.Dropdown(id="target", options=TARGET_CHOICES,
-                               value="Volume Sales", clearable=False,
-                               style={"width": "180px"})]),
+                  dcc.Dropdown(id="target", clearable=False,
+                               style={"width": "260px"})]),
         html.Div([html.Label("Model window (weeks)"),
                   dcc.Dropdown(id="window", options=WINDOW_CHOICES, value=104,
-                               clearable=False, style={"width": "160px"})]),
+                               clearable=False, style={"width": "150px"})]),
         html.Button("Run model", id="run", n_clicks=0,
                     style={**BTN, "background": "#4c51bf", "color": "white"}),
     ]),
@@ -198,10 +252,11 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
                             style={**BTN, "background": "#e2e8f0"}),
                 html.Div(id="batch_status", style={"color": "#4a5568"}),
             ]),
-            html.Div("Every Brand × Channel from run_all.py. Sort by any "
-                     "column; click a row to load that slice into the "
-                     "controls above, then hit Run model. Red rows: holdout "
-                     "MAPE > 40% — candidates for structural-change review.",
+            html.Div("Every Product × Channel from run_all.py (bundled "
+                     "dataset). Sort by any column; click a row to load that "
+                     "slice into the controls above, then hit Run model. Red "
+                     "rows: holdout MAPE > 40% — structural-change review "
+                     "candidates.",
                      style={"fontSize": "13px", "color": "#4a5568",
                             "marginBottom": "10px"}),
             dash_table.DataTable(
@@ -223,32 +278,83 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
 
 # ---------------- callbacks ----------------
 
+@app.callback(Output("datapath", "data"), Output("load_status", "children"),
+              Input("load_data", "n_clicks"),
+              State("datafile_input", "value"))
+def _load_data(_n, path):
+    path = (path or "").strip().strip('"')
+    if not path:
+        return None, "Enter a path to an .xlsx datafile."
+    if not os.path.exists(path):
+        return None, f"File not found: {path}"
+    try:
+        sheets = detect_product_sheets(path)
+    except Exception as e:
+        return None, f"Could not read workbook: {e}"
+    if not sheets:
+        return None, ("No product sheets found (need `Geography` and `Time` "
+                      "columns, or sheets named 'Brand *').")
+    n_ch = len(channels_for(path, sheets[0]))
+    n_wk = len(load_sheet(path, sheets[0])) // max(n_ch, 1)
+    return ({"path": path, "sheets": list(sheets)},
+            f"Loaded {os.path.basename(path)}: {len(sheets)} product sheets, "
+            f"~{n_ch} channels, ~{n_wk} weeks each.")
+
+
+@app.callback(Output("brand", "options"), Output("brand", "value"),
+              Input("datapath", "data"))
+def _brands(dp):
+    if not dp:
+        return [], None
+    return dp["sheets"], dp["sheets"][0]
+
+
 @app.callback(Output("channel", "options"), Output("channel", "value"),
-              Input("brand", "value"), Input("batch_sel", "data"))
-def _channels(brand, sel):
-    ch = channels_for(brand)
+              Input("brand", "value"), Input("batch_sel", "data"),
+              State("datapath", "data"))
+def _channels(brand, sel, dp):
+    if not dp or not brand:
+        return [], None
+    ch = channels_for(dp["path"], brand)
     if sel and sel.get("brand") == brand and sel.get("channel") in ch:
         return ch, sel["channel"]
     return ch, (ch[0] if ch else None)
 
 
+@app.callback(Output("target", "options"), Output("target", "value"),
+              Input("brand", "value"), State("datapath", "data"),
+              State("target", "value"))
+def _targets(brand, dp, current):
+    if not dp or not brand:
+        return [], None
+    opts = target_choices(dp["path"], brand)
+    if current in opts:
+        return opts, current
+    return opts, (opts[0] if opts else None)
+
+
 @app.callback(Output("cfg_table", "data"),
-              Input("brand", "value"), Input("cfg_regen", "n_clicks"))
-def _load_cfg(brand, _regen):
+              Input("brand", "value"), Input("cfg_regen", "n_clicks"),
+              State("datapath", "data"))
+def _load_cfg(brand, _regen, dp):
+    if not dp or not brand:
+        return []
     try:
         from dash import ctx
         regen = ctx.triggered_id == "cfg_regen"
     except Exception:          # outside a live callback (tests)
         regen = False
-    cfg = load_or_create_config(brand, regenerate=regen)
+    cfg = load_or_create_config(dp["path"], brand, regenerate=regen)
     return cfg[CFG_COLS].to_dict("records")
 
 
 @app.callback(Output("cfg_status", "children"),
               Input("cfg_save", "n_clicks"),
               State("cfg_table", "data"), State("brand", "value"),
-              prevent_initial_call=True)
-def _save_cfg(_n, rows, brand):
+              State("datapath", "data"), prevent_initial_call=True)
+def _save_cfg(_n, rows, brand, dp):
+    if not dp or not brand:
+        return "Load a datafile first."
     cfg = pd.DataFrame(rows, columns=CFG_COLS)
     for c in ("adstock_decay", "coef_lower", "coef_upper"):
         cfg[c] = pd.to_numeric(cfg[c], errors="coerce")
@@ -256,10 +362,11 @@ def _save_cfg(_n, rows, brand):
               & (cfg.coef_lower > cfg.coef_upper)]
     if len(bad):
         return f"NOT saved: coef_lower > coef_upper for {list(bad.variable)}"
-    cfg.to_csv(cfg_path(brand), index=False)
+    p = cfg_path(dp["path"], brand)
+    cfg.to_csv(p, index=False)
     n_force = int((cfg.role == "force").sum())
     n_excl = int((cfg.role == "exclude").sum())
-    return (f"Saved {cfg_path(brand)} — {len(cfg)} variables, "
+    return (f"Saved {os.path.basename(p)} — {len(cfg)} variables, "
             f"{n_force} forced, {n_excl} excluded. Next run uses it.")
 
 
@@ -276,7 +383,8 @@ def _load_batch(_n):
             f"median holdout MAPE {s.MAPE_holdout_pct.median():.1f}%")
 
 
-@app.callback(Output("brand", "value"), Output("batch_sel", "data"),
+@app.callback(Output("brand", "value", allow_duplicate=True),
+              Output("batch_sel", "data"),
               Input("batch_table", "selected_rows"),
               State("batch_table", "data"), prevent_initial_call=True)
 def _pick_slice(sel, data):
@@ -304,17 +412,20 @@ def _metric(label, value):
     Input("run", "n_clicks"),
     State("brand", "value"), State("channel", "value"),
     State("target", "value"), State("window", "value"),
+    State("datapath", "data"),
     prevent_initial_call=False)
-def run_model(_, brand, channel, target, window):
+def run_model(_, brand, channel, target, window, dp):
     empty = go.Figure()
     blank = ([], empty, empty, empty, [], [], empty, empty, [], [])
-    if not channel:
+    if not dp or not channel or not target:
         return (*blank, "")
+    path = dp["path"]
     try:
-        load_or_create_config(brand)          # ensure per-brand config exists
+        load_or_create_config(path, brand)    # ensure config exists
         cfg = cp.ModelConfig(target=target, model_weeks=int(window),
-                             variable_config=cfg_path(brand))
-        r = cp.run_slice("", brand, channel, config=cfg, df=load_sheet(brand))
+                             variable_config=cfg_path(path, brand))
+        r = cp.run_slice("", brand, channel, config=cfg,
+                         df=load_sheet(path, brand))
     except Exception as e:
         return (*blank, f"Model failed: {e}")
 
@@ -395,8 +506,8 @@ def run_model(_, brand, channel, target, window):
                      margin=dict(t=48, b=24))
 
     yoy = cby.round(0).reset_index().rename(columns={"index": "driver"})
-    yoy_cols = [{"name": str(c), "id": str(c)} for c in yoy.columns]
     yoy.columns = [str(c) for c in yoy.columns]
+    yoy_cols = [{"name": c, "id": c} for c in yoy.columns]
 
     return (metrics, f1, f2, f3, coef_rows, cols,
             f4, f5, yoy.to_dict("records"), yoy_cols, "")
