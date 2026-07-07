@@ -97,6 +97,49 @@ def cfg_path(path: str, sheet: str) -> str:
     return os.path.join(CFG_DIR, f"varconfig_{ds}_{_slug(sheet)}.csv")
 
 
+def batch_summary_path(path: str) -> str:
+    ds = _slug(os.path.splitext(os.path.basename(path))[0])[:24]
+    return os.path.join(ROOT, "outputs", f"batch_summary_{ds}.csv")
+
+
+def run_batch(path: str, target_pref: str, window: int) -> pd.DataFrame:
+    """Run every Product x Channel of a datafile, using each product's saved
+    variable config (the same one edited in the Variable controls tab)."""
+    rows = []
+    for sheet in detect_product_sheets(path):
+        df_sheet = load_sheet(path, sheet)
+        load_or_create_config(path, sheet)
+        tgt = target_pref if target_pref in df_sheet.columns else next(
+            (t for t in PREFERRED_TARGETS if t in df_sheet.columns), None)
+        if tgt is None:
+            continue
+        for channel in channels_for(path, sheet):
+            if df_sheet.loc[df_sheet["Geography"] == channel, tgt].abs().sum() == 0:
+                continue                      # not sold in this channel
+            try:
+                cfg = cp.ModelConfig(target=tgt, model_weeks=int(window),
+                                     variable_config=cfg_path(path, sheet))
+                r = cp.run_slice("", sheet, channel, config=cfg, df=df_sheet)
+                fit = r["fit"]
+                rows.append({
+                    "brand": sheet, "channel": channel, "target": tgt,
+                    "n_selected": len(r["selected"]),
+                    "n_forced": len(r["forced"]),
+                    "R2": round(fit.r2, 4),
+                    "MAPE_in_pct": round(fit.mape, 2),
+                    "MAPE_holdout_pct": round(r["holdout_mape"], 2),
+                    "n_sign_conflicts": len(r["sign_conflicts"]),
+                })
+            except Exception as e:
+                rows.append({"brand": sheet, "channel": channel, "target": tgt,
+                             "n_selected": 0, "n_forced": 0, "R2": np.nan,
+                             "MAPE_in_pct": np.nan, "MAPE_holdout_pct": np.nan,
+                             "n_sign_conflicts": 0, "error": str(e)})
+    out = pd.DataFrame(rows).sort_values("MAPE_holdout_pct")
+    out.to_csv(batch_summary_path(path), index=False)
+    return out
+
+
 def load_or_create_config(path: str, sheet: str,
                           regenerate: bool = False) -> pd.DataFrame:
     """Per-dataset, per-product variable config; generated from heuristics on
@@ -248,15 +291,20 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
             html.Div(style={"display": "flex", "gap": "12px",
                             "margin": "14px 0", "alignItems": "center"},
                      children=[
+                html.Button("Run all combinations", id="batch_run",
+                            n_clicks=0,
+                            style={**BTN, "background": "#4c51bf",
+                                   "color": "white"}),
                 html.Button("Reload summary", id="batch_refresh", n_clicks=0,
                             style={**BTN, "background": "#e2e8f0"}),
                 html.Div(id="batch_status", style={"color": "#4a5568"}),
             ]),
-            html.Div("Every Product × Channel from run_all.py (bundled "
-                     "dataset). Sort by any column; click a row to load that "
-                     "slice into the controls above, then hit Run model. Red "
-                     "rows: holdout MAPE > 40% — structural-change review "
-                     "candidates.",
+            html.Div("Run all combinations batches every Product × "
+                     "Channel of the LOADED datafile with the saved variable "
+                     "configs (target/window from the controls above). Sort "
+                     "by any column; click a row to load that slice, then "
+                     "hit Run model. Red rows: holdout MAPE > 40% — "
+                     "structural-change review candidates.",
                      style={"fontSize": "13px", "color": "#4a5568",
                             "marginBottom": "10px"}),
             dash_table.DataTable(
@@ -370,17 +418,48 @@ def _save_cfg(_n, rows, brand, dp):
             f"{n_force} forced, {n_excl} excluded. Next run uses it.")
 
 
-@app.callback(Output("batch_table", "data"), Output("batch_table", "columns"),
-              Output("batch_status", "children"),
-              Input("batch_refresh", "n_clicks"))
-def _load_batch(_n):
-    if not os.path.exists(SUMMARY):
-        return [], [], "No summary found — run `python run_all.py` first."
-    s = pd.read_csv(SUMMARY)
+def _summary_for(dp):
+    """Per-dataset batch summary; falls back to the run_all.py output for
+    the bundled dataset."""
+    if dp and os.path.exists(batch_summary_path(dp["path"])):
+        return batch_summary_path(dp["path"])
+    if dp and os.path.normpath(dp["path"]) == os.path.normpath(DEFAULT_DATA) \
+            and os.path.exists(SUMMARY):
+        return SUMMARY
+    return None
+
+
+def _batch_payload(s):
     cols = [{"name": c, "id": c} for c in s.columns]
     return (s.round(3).to_dict("records"), cols,
             f"{len(s)} models · median R² {s.R2.median():.2f} · "
             f"median holdout MAPE {s.MAPE_holdout_pct.median():.1f}%")
+
+
+@app.callback(Output("batch_table", "data"), Output("batch_table", "columns"),
+              Output("batch_status", "children"),
+              Input("batch_refresh", "n_clicks"), Input("datapath", "data"))
+def _load_batch(_n, dp):
+    p = _summary_for(dp)
+    if p is None:
+        return [], [], "No batch yet — hit Run all combinations."
+    return _batch_payload(pd.read_csv(p))
+
+
+@app.callback(Output("batch_table", "data", allow_duplicate=True),
+              Output("batch_table", "columns", allow_duplicate=True),
+              Output("batch_status", "children", allow_duplicate=True),
+              Input("batch_run", "n_clicks"),
+              State("datapath", "data"), State("target", "value"),
+              State("window", "value"), prevent_initial_call=True)
+def _run_batch(_n, dp, target, window):
+    if not dp:
+        return [], [], "Load a datafile first."
+    import time as _time
+    t0 = _time.time()
+    s = run_batch(dp["path"], target or "Volume Sales", window or 104)
+    data, cols, status = _batch_payload(s)
+    return data, cols, f"{status} · ran in {_time.time()-t0:.0f}s"
 
 
 @app.callback(Output("brand", "value", allow_duplicate=True),

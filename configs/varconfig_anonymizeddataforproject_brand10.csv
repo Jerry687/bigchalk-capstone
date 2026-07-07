@@ -1,0 +1,52 @@
+variable,family,sign,adstock_decay,coef_lower,coef_upper,role
+Price per Volume,Price,negative,,,,auto
+Total Category Price Per Volume,Category Price,positive,,,,auto
+ACV Weighted Distribution,Distribution,positive,,,,force
+Avg Weekly Items per Store Selling,Distribution,positive,,,,auto
+Total Points of Distribution,Distribution,positive,,,,auto
+Weighted Weeks Price Reductions Only,Trade,positive,,,,auto
+Weighted Weeks Feature Only,Trade,positive,,,,auto
+Weighted Weeks Display Only,Trade,positive,,,,auto
+Weighted Weeks Special Pack Only,Trade,positive,,,,auto
+Weighted Weeks Feature and Display,Trade,positive,,,,auto
+Brand 0210_Meta_Spend,Media,positive,0.5,,,auto
+Brand 0210_Google_Ads_Spend,Media,positive,0.2,,,auto
+Brand 0210_TikTok_Spend,Media,positive,0.5,,,auto
+Brand 0210_Walmart_Spend,Media,positive,0.5,,,auto
+Brand 0210_Amazon_Spend,Media,positive,0.5,,,auto
+Brand 0210_Instacart_Spend,Media,positive,0.5,,,auto
+Brand 0210_Hyvee_Spend,Media,positive,0.5,,,auto
+Brand 0210_Doordash_Spend,Media,positive,0.5,,,auto
+Brand 0210_Kroger_Spend,Media,positive,0.5,,,auto
+Brand 0210_Absco_Spend,Media,positive,0.5,,,auto
+Brand 0210_Ahold_Spend,Media,positive,0.5,,,auto
+Brand 0210_Sams_Club_Spend,Media,positive,0.5,,,auto
+Brand 0210_YouTube_Spend,Media,positive,0.5,,,auto
+Brand 0210_Snapchat_Spend,Media,positive,0.5,,,auto
+Brand 0210_TTD_Instacart_Display_Spend,Media,positive,0.5,,,auto
+Brand 0210_TTD_Instacart_CTV_Spend,Media,positive,0.7,,,auto
+Brand 0210_TTD_Kroger_Display_Spend,Media,positive,0.5,,,auto
+Brand 0210_TTD_Walmart_Display_Spend,Media,positive,0.5,,,auto
+Brand 0210_TTD_Walmart_CTV_Spend,Media,positive,0.7,,,auto
+Brand 0210_TTD_Walmart_Audio_Spend,Media,positive,0.5,,,auto
+Brand 0210_TTD_Ahold_Audio_Spend,Media,positive,0.5,,,auto
+Brand 0210_Amazon_STV_Spend,Media,positive,0.7,,,auto
+Seasonality_Index,Seasonality,positive,,,,auto
+Trend,Trend,unconstrained,,,,auto
+Unemployment_Rate,Macro,unconstrained,,,,auto
+Median_CPI,Macro,unconstrained,,,,auto
+CFNAI,Macro,unconstrained,,,,auto
+Gas_Price,Macro,unconstrained,,,,auto
+UMCSENT,Macro,unconstrained,,,,auto
+T5YIE,Macro,unconstrained,,,,auto
+PSAVERT,Macro,unconstrained,,,,auto
+PCEC96,Macro,unconstrained,,,,auto
+SNAP_Participants,Macro,unconstrained,,,,auto
+Fedfunds,Macro,unconstrained,,,,auto
+Unempclaims,Macro,unconstrained,,,,auto
+Retail_Sales,Macro,unconstrained,,,,auto
+_C_COMPETITOR3__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
+_C_COMPETITOR3__Weighted Weeks Feature Only,Competitive,negative,,,,auto
+_C_COMPETITOR3__Weighted Weeks Display Only,Competitive,negative,,,,auto
+_C_COMPETITOR3__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
+_C_COMPETITOR3__Weighted Weeks Feature and Display,Competitive,negative,,,,auto

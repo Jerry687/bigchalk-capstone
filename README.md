@@ -28,7 +28,7 @@ outputs/                      Generated charts and result CSVs (derived, anonymi
   all_models_summary.csv      Cross-slice summary (R², MAPE, top drivers), sorted by holdout MAPE
 requirements.txt              pip install -r requirements.txt
 Project_Brief.md              Scope, data dictionary, timeline
-Phase1-2_Findings.md          Methodology, results, open questions for the sponsor
+Findings.md                   Living findings/methodology doc (Phase1-2_Findings.md = week-2 snapshot)
 ```
 
 ## Quickstart
