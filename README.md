@@ -19,7 +19,7 @@ code/
   capstone_pipeline.py        Core engine: load, adstock, selection, constrained fit, contributions
   run_brand1_channel1.py      Single-slice runner (EDA + model + charts + exports)
   run_all.py                  Phase 3 batch runner: every Brand × Channel (~9 s for all 82)
-  dashboard.py                Phase 4 Dash UI: run & diagnostics + variable control panel
+  dashboard.py                Phase 4 Dash UI: diagnostics · variable controls · contributions · batch overview
   reference_alex_curvefit.py  Sponsor's curve_fit approach + equivalence test (matches to 3e-7)
 configs/                      Per-brand variable configs edited via the dashboard
 variable_config.csv           Brand 1 config used by the single-slice runner

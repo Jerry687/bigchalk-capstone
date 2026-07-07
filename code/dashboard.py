@@ -1,14 +1,15 @@
 """
 Phase 4: Plotly Dash dashboard for the Big Chalk regression engine.
 
-Tab 1 — Run & diagnostics: pick Brand x Channel x target, set the modeling
-window, run the constrained model, inspect fit quality.
-
-Tab 2 — Variable controls (Alex's key ask): per-brand editable table of
-every candidate variable — family, expected sign, custom coefficient
-bounds, adstock decay, and role (auto / force / exclude). Saved to
-../configs/variable_config_<brand>.csv; every model run reads the selected
-brand's config, so edits here directly steer the engine.
+Tabs:
+  1. Run & diagnostics  — pick Brand x Channel x target, run, inspect fit.
+  2. Variable controls  — per-brand editable config: family, sign, custom
+     coefficient bounds, adstock decay, role (auto / force / exclude).
+     Saved to ../configs/variable_config_<brand>.csv; every run reads it.
+  3. Contributions      — due-tos by model year with YoY change, and average
+     weekly contribution per driver (media averaged over execution weeks only).
+  4. Batch overview     — all-slices summary from run_all.py; click a row to
+     load that Brand x Channel into the controls, then hit Run model.
 
     pip install dash
     cd code && python dashboard.py     # http://127.0.0.1:8050
@@ -31,6 +32,7 @@ import capstone_pipeline as cp
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 DATA = os.path.join(ROOT, "Anonymized Data for Project.xlsx")
 CFG_DIR = os.path.join(ROOT, "configs")
+SUMMARY = os.path.join(ROOT, "outputs", "all_models_summary.csv")
 os.makedirs(CFG_DIR, exist_ok=True)
 
 TARGET_CHOICES = ["Volume Sales", "Dollar Sales"]
@@ -78,11 +80,15 @@ CARD = {"padding": "12px 18px", "borderRadius": "8px", "background": "#f7fafc",
         "border": "1px solid #e2e8f0", "textAlign": "center", "minWidth": "120px"}
 BTN = {"height": "38px", "padding": "0 24px", "border": "none",
        "borderRadius": "6px", "cursor": "pointer"}
+TBL_STYLE = dict(style_cell={"fontFamily": "Segoe UI", "fontSize": "13px",
+                             "textAlign": "left"},
+                 style_header={"fontWeight": "600"})
 
 app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
                              "margin": "0 auto", "maxWidth": "1200px",
                              "padding": "16px"}, children=[
     html.H2("Big Chalk — Marketing-Mix Regression Engine"),
+    dcc.Store(id="batch_sel"),
     html.Div(style={"display": "flex", "gap": "12px", "flexWrap": "wrap",
                     "alignItems": "flex-end"}, children=[
         html.Div([html.Label("Brand"),
@@ -115,11 +121,7 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
                 dcc.Graph(id="fig_residhist", style={"flex": 1}),
             ]),
             html.H4("Coefficients"),
-            dash_table.DataTable(id="coef_table",
-                                 style_cell={"fontFamily": "Segoe UI",
-                                             "fontSize": "13px",
-                                             "textAlign": "left"},
-                                 style_header={"fontWeight": "600"}),
+            dash_table.DataTable(id="coef_table", **TBL_STYLE),
             html.Div(id="err", style={"color": "#c53030",
                                       "marginTop": "8px"}),
         ])]),
@@ -175,6 +177,46 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
                 ],
             ),
         ]),
+
+        dcc.Tab(label="Contributions", children=[dcc.Loading(children=[
+            html.Div("Run a model first (any tab) — contributions update with "
+                     "every run. Due-tos decompose the fitted line exactly: "
+                     "intercept + sum of coefficient × value per week.",
+                     style={"fontSize": "13px", "color": "#4a5568",
+                            "margin": "12px 0"}),
+            dcc.Graph(id="fig_cby"),
+            dcc.Graph(id="fig_avgc"),
+            html.H4("Due-tos by model year"),
+            dash_table.DataTable(id="yoy_table", **TBL_STYLE),
+        ])]),
+
+        dcc.Tab(label="Batch overview", children=[
+            html.Div(style={"display": "flex", "gap": "12px",
+                            "margin": "14px 0", "alignItems": "center"},
+                     children=[
+                html.Button("Reload summary", id="batch_refresh", n_clicks=0,
+                            style={**BTN, "background": "#e2e8f0"}),
+                html.Div(id="batch_status", style={"color": "#4a5568"}),
+            ]),
+            html.Div("Every Brand × Channel from run_all.py. Sort by any "
+                     "column; click a row to load that slice into the "
+                     "controls above, then hit Run model. Red rows: holdout "
+                     "MAPE > 40% — candidates for structural-change review.",
+                     style={"fontSize": "13px", "color": "#4a5568",
+                            "marginBottom": "10px"}),
+            dash_table.DataTable(
+                id="batch_table", sort_action="native",
+                filter_action="native", row_selectable="single",
+                page_size=100,
+                style_cell={"fontFamily": "Segoe UI", "fontSize": "13px",
+                            "textAlign": "left"},
+                style_header={"fontWeight": "600"},
+                style_data_conditional=[
+                    {"if": {"filter_query": "{MAPE_holdout_pct} > 40"},
+                     "backgroundColor": "#fff5f5"},
+                ],
+            ),
+        ]),
     ]),
 ])
 
@@ -182,9 +224,11 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, sans-serif",
 # ---------------- callbacks ----------------
 
 @app.callback(Output("channel", "options"), Output("channel", "value"),
-              Input("brand", "value"))
-def _channels(brand):
+              Input("brand", "value"), Input("batch_sel", "data"))
+def _channels(brand, sel):
     ch = channels_for(brand)
+    if sel and sel.get("brand") == brand and sel.get("channel") in ch:
+        return ch, sel["channel"]
     return ch, (ch[0] if ch else None)
 
 
@@ -219,6 +263,30 @@ def _save_cfg(_n, rows, brand):
             f"{n_force} forced, {n_excl} excluded. Next run uses it.")
 
 
+@app.callback(Output("batch_table", "data"), Output("batch_table", "columns"),
+              Output("batch_status", "children"),
+              Input("batch_refresh", "n_clicks"))
+def _load_batch(_n):
+    if not os.path.exists(SUMMARY):
+        return [], [], "No summary found — run `python run_all.py` first."
+    s = pd.read_csv(SUMMARY)
+    cols = [{"name": c, "id": c} for c in s.columns]
+    return (s.round(3).to_dict("records"), cols,
+            f"{len(s)} models · median R² {s.R2.median():.2f} · "
+            f"median holdout MAPE {s.MAPE_holdout_pct.median():.1f}%")
+
+
+@app.callback(Output("brand", "value"), Output("batch_sel", "data"),
+              Input("batch_table", "selected_rows"),
+              State("batch_table", "data"), prevent_initial_call=True)
+def _pick_slice(sel, data):
+    if not sel or not data:
+        from dash import no_update
+        return no_update, no_update
+    row = data[sel[0]]
+    return row["brand"], {"brand": row["brand"], "channel": row["channel"]}
+
+
 def _metric(label, value):
     return html.Div(style=CARD, children=[
         html.Div(label, style={"fontSize": "12px", "color": "#4a5568"}),
@@ -230,6 +298,8 @@ def _metric(label, value):
     Output("metrics", "children"), Output("fig_fit", "figure"),
     Output("fig_resid", "figure"), Output("fig_residhist", "figure"),
     Output("coef_table", "data"), Output("coef_table", "columns"),
+    Output("fig_cby", "figure"), Output("fig_avgc", "figure"),
+    Output("yoy_table", "data"), Output("yoy_table", "columns"),
     Output("err", "children"),
     Input("run", "n_clicks"),
     State("brand", "value"), State("channel", "value"),
@@ -237,15 +307,16 @@ def _metric(label, value):
     prevent_initial_call=False)
 def run_model(_, brand, channel, target, window):
     empty = go.Figure()
+    blank = ([], empty, empty, empty, [], [], empty, empty, [], [])
     if not channel:
-        return [], empty, empty, empty, [], [], ""
+        return (*blank, "")
     try:
         load_or_create_config(brand)          # ensure per-brand config exists
         cfg = cp.ModelConfig(target=target, model_weeks=int(window),
                              variable_config=cfg_path(brand))
         r = cp.run_slice("", brand, channel, config=cfg, df=load_sheet(brand))
     except Exception as e:
-        return [], empty, empty, empty, [], [], f"Model failed: {e}"
+        return (*blank, f"Model failed: {e}")
 
     fit, df, split = r["fit"], r["df"], r["split"]
     y = r["y"]
@@ -298,7 +369,37 @@ def run_model(_, brand, channel, target, window):
                            if name != "const" else None,
         })
     cols = [{"name": k, "id": k} for k in coef_rows[0].keys()]
-    return metrics, f1, f2, f3, coef_rows, cols, ""
+
+    # ---- contributions tab ----
+    cby = r["contrib_by_year"]
+    year_cols = [c for c in cby.columns if not str(c).startswith("YoY")]
+    plot_tbl = cby[year_cols].drop("Intercept", errors="ignore")
+    f4 = go.Figure()
+    palette = ["#a0aec0", "#4c51bf", "#38a169"]
+    for i, yc in enumerate(year_cols):
+        f4.add_bar(y=plot_tbl.index, x=plot_tbl[yc], name=str(yc),
+                   orientation="h",
+                   marker_color=palette[i % len(palette)])
+    f4.update_layout(barmode="group", height=max(360, 34 * len(plot_tbl)),
+                     title=f"Due-to totals by model year — {brand} × {channel}",
+                     margin=dict(t=48, b=24), legend=dict(orientation="h"))
+
+    avg = (r["avg_contrib"]["avg_weekly_contribution"]
+           .drop("Intercept", errors="ignore").sort_values())
+    f5 = go.Figure(go.Bar(
+        y=avg.index, x=avg.values, orientation="h",
+        marker_color=["#e53e3e" if v < 0 else "#4c51bf" for v in avg.values]))
+    f5.update_layout(height=max(360, 34 * len(avg)),
+                     title="Avg weekly due-to per driver (signed; media "
+                           "averaged over execution weeks only)",
+                     margin=dict(t=48, b=24))
+
+    yoy = cby.round(0).reset_index().rename(columns={"index": "driver"})
+    yoy_cols = [{"name": str(c), "id": str(c)} for c in yoy.columns]
+    yoy.columns = [str(c) for c in yoy.columns]
+
+    return (metrics, f1, f2, f3, coef_rows, cols,
+            f4, f5, yoy.to_dict("records"), yoy_cols, "")
 
 
 if __name__ == "__main__":
