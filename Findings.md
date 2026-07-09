@@ -99,6 +99,16 @@ discovered from the data), **Run all combinations** batches the loaded file usin
 the saved configs, drill-down / modify / rerun individual models all supported.
 Validated on a synthetic "new client" workbook with alien sheet and column naming.
 
+**Redesign (July 9):** the UI now implements the "Bench" direction from a Claude
+Design handoff — IBM Plex type, chalk-navy accent, left workspace rail, metric
+strip with REVIEW flags, family color chips, batch health dots (`assets/bench.css`).
+Configs became per-dataset + per-product so two clients' files can't collide.
+Implementation surfaced two real-data bugs worth recording: Brand 2 carries a
+column literally named `0` (numeric header crashed target discovery — now sorted
+with `key=str`), and an empty Dash component is *falsy*, which silently dropped a
+subtitle from the layout and made the browser disable the Run callback with no
+error. The dashboard now runs a startup wiring audit that fails loudly instead.
+
 Remaining UI gap (known): per-slice (single Brand × Channel) config overrides —
 configs currently apply per product across its channels.
 

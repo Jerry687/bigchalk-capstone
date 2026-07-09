@@ -21,6 +21,9 @@ batch view. Ahead of the scope timeline (~3 weeks of scoped work done in ~2.5).
    sheets and targets auto-detected, model runs, media picked up. *"No data is
    clean; nothing is hard-coded."* Mention Brand 0210 quirk.
 5. **Run all combinations** — one click, ~10s, summary table appears.
+6. **The new look** — the UI now wears a designed "Bench" system (IBM Plex,
+   chalk-navy, health dots, REVIEW flags). Ask Alex if this direction works
+   for Big Chalk or if he'd steer the visual language differently.
 
 ## Questions for Alex
 1. **Brand 1, Q4 2025:** known delisting/assortment loss? Remaining 32% holdout

@@ -19,9 +19,10 @@ code/
   capstone_pipeline.py        Core engine: load, adstock, selection, constrained fit, contributions
   run_brand1_channel1.py      Single-slice runner (EDA + model + charts + exports)
   run_all.py                  Phase 3 batch runner: every Brand × Channel (~9 s for all 82)
-  dashboard.py                Phase 4 Dash UI: diagnostics · variable controls · contributions · batch overview
+  dashboard.py                Phase 4 Dash UI (Bench design): diagnostics · variables · contributions · batch
+  assets/bench.css            Bench design system (IBM Plex, chalk-navy) from the Claude Design handoff
   reference_alex_curvefit.py  Sponsor's curve_fit approach + equivalence test (matches to 3e-7)
-configs/                      Per-brand variable configs edited via the dashboard
+configs/                      Per-dataset, per-product variable configs edited via the dashboard
 variable_config.csv           Brand 1 config used by the single-slice runner
 outputs/                      Generated charts and result CSVs (derived, anonymized)
   all/                        Per-slice coefficient & contribution tables from run_all
@@ -62,6 +63,17 @@ Slices are embarrassingly parallel if further scale is ever needed.
 holdout MAPE ~10%. See `outputs/all_models_summary.csv`; high-MAPE slices flag
 structural change (e.g. Brand 1 × Channel 1's distribution collapse — forcing
 `ACV Weighted Distribution` into the model cut its holdout MAPE from 73% to 32%).
+
+## Phase 4 — the UI (Bench design)
+Plotly Dash app implementing the "Bench" direction from a Claude Design handoff:
+left workspace rail (Diagnostics / Variables / Contributions / Batch), top
+slice-picker bar, metric strip that flags holdout MAPE > 40% for REVIEW,
+coefficient table with family chips and t-stat bars, due-to YoY pills, and a
+batch screen with health dots. Loads **any client datafile** (sheets and targets
+auto-detected), edits per-product variable configs, and batch-runs every
+combination from the browser. A startup wiring guard audits every callback
+against the layout — Dash silently disables callbacks referencing missing
+components when debug is off, which we learned the hard way.
 
 ## Changes from sponsor review (Alex, 2026-07-06)
 Adstock normalization + per-media decays · config-table variable mapping · custom
