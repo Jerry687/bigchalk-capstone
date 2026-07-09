@@ -28,3 +28,6 @@ result.txt
 
 # Client meeting transcripts (NDA)
 *_otter_ai_transcript.txt
+
+# local-only working files (NDA material, decks, transcripts)
+local/

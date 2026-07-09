@@ -27,9 +27,15 @@ variable_config.csv           Brand 1 config used by the single-slice runner
 outputs/                      Generated charts and result CSVs (derived, anonymized)
   all/                        Per-slice coefficient & contribution tables from run_all
   all_models_summary.csv      Cross-slice summary (R², MAPE, top drivers), sorted by holdout MAPE
+docs/
+  Project_Brief.md            Scope, data dictionary, timeline
+  Findings.md                 Living findings/methodology doc
+  Phase1-2_Findings.md        Week-2 snapshot as delivered to the sponsor
+  Monday_Meeting_Prep.md      Rolling sponsor-meeting prep sheet
+  BigChalk_Capstone_Week2_Deliverables.pdf
+  design-handoff.zip          Claude Design bundle the Bench UI was built from
+local/                        NDA material kept out of git (decks, transcripts) — gitignored
 requirements.txt              pip install -r requirements.txt
-Project_Brief.md              Scope, data dictionary, timeline
-Findings.md                   Living findings/methodology doc (Phase1-2_Findings.md = week-2 snapshot)
 ```
 
 ## Quickstart
