@@ -1,0 +1,155 @@
+/* Bench design — Big Chalk Mix Engine (from Claude Design handoff, option 1a) */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #101828; --ink-2: #475467; --ink-3: #667085; --muted: #98A2B3;
+  --navy: #1E4FA3; --navy-dark: #17408A; --navy-tint: #EBF1FB; --navy-line: #D3E0F4;
+  --bg: #F6F7F9; --card: #FFFFFF; --line: #E4E7EC; --line-soft: #F2F4F7;
+  --warn: #B54708; --warn-bg: #FFFCF5; --warn-line: #F9DBAF; --warn-chip: #FEF0C7;
+  --red: #B42318; --red-dot: #D92D20; --red-bg: #FBE9E7; --red-row: #FFF6F5;
+  --green: #067647; --green-dot: #12B76A; --green-bg: #E0F2EC; --amber: #F79009;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--bg); font-family: var(--sans); color: var(--ink); }
+
+/* layout */
+.bench-app { display: flex; min-height: 100vh; }
+.bench-rail { width: 216px; background: var(--card); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; flex-shrink: 0; position: sticky; top: 0; height: 100vh; box-sizing: border-box; }
+.bench-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* rail */
+.bench-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; align-items: center; gap: 9px; }
+.bench-logo-mark { width: 28px; height: 28px; background: var(--navy); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;
+  font-size: 13px; letter-spacing: .5px; }
+.bench-logo-name { font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.bench-logo-sub { font-size: 10.5px; color: var(--ink-3); margin-top: 1px; }
+.bench-navwrap { padding: 14px 10px; flex: 1; }
+.bench-navhead { font-size: 10px; font-weight: 600; letter-spacing: .08em; color: var(--muted); padding: 0 10px 8px; }
+.bench-nav { display: flex; flex-direction: column; gap: 2px; }
+.bench-nav button { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px;
+  border: none; background: transparent; color: var(--ink-2); font-family: var(--sans);
+  font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; width: 100%; }
+.bench-nav button:hover { background: var(--bg); color: var(--ink); }
+.bench-nav button.active { background: var(--navy-tint); color: var(--navy); font-weight: 600; cursor: default; }
+.bench-nav svg { flex-shrink: 0; }
+.bench-dataset { margin: 0 12px 14px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #FAFBFC; }
+.bench-dataset .head { font-size: 10px; font-weight: 600; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+.bench-dataset .file { font-size: 12px; font-weight: 600; line-height: 1.35; word-break: break-word; }
+.bench-dataset .meta { font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.5; }
+.bench-dataset input { width: 100%; box-sizing: border-box; margin-top: 8px; border: 1px solid #D0D5DD;
+  border-radius: 6px; padding: 5px 8px; font-family: var(--sans); font-size: 11px; color: var(--ink-2); }
+.bench-dataset .loadbtn { margin-top: 6px; width: 100%; }
+
+/* top bar */
+.bench-topbar { height: 64px; background: var(--card); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px; padding: 0 20px; box-sizing: border-box;
+  flex-shrink: 0; position: sticky; top: 0; z-index: 50; }
+.bench-picks { display: flex; gap: 8px; }
+.bench-pick { border: 1px solid #D0D5DD; border-radius: 7px; padding: 4px 8px 2px 12px; background: #fff; min-width: 110px; }
+.bench-pick:hover { border-color: var(--muted); }
+.bench-pick .plabel { font-size: 9.5px; font-weight: 600; letter-spacing: .07em; color: var(--muted); }
+.bench-runstat { font-size: 12px; color: var(--ink-3); }
+.bench-runstat .mono { font-family: var(--mono); }
+
+/* buttons */
+.btn { height: 38px; padding: 0 20px; border: none; border-radius: 7px; font-family: var(--sans);
+  font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-primary:hover { background: var(--navy-dark); }
+.btn-ghost { background: #fff; color: var(--ink-2); border: 1px solid #D0D5DD; height: 36px; padding: 0 16px; font-size: 13px; }
+.btn-ghost:hover { border-color: var(--muted); }
+.btn-small { height: 30px; padding: 0 12px; font-size: 12px; }
+
+/* screens */
+.bench-screen { flex: 1; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
+
+/* metric cards */
+.bench-metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.mcard { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.mcard .mlabel { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; color: var(--ink-3);
+  display: flex; align-items: center; gap: 6px; }
+.mcard .mvalue { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 3px; }
+.mcard .munit { font-size: 14px; color: var(--ink-3); }
+.mcard.warn { background: var(--warn-bg); border-color: var(--warn-line); }
+.mcard.warn .mlabel, .mcard.warn .mvalue { color: var(--warn); }
+.review-chip { font-size: 9.5px; font-weight: 700; background: var(--warn-chip); color: var(--warn);
+  border-radius: 4px; padding: 1px 5px; }
+
+/* cards */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-sizing: border-box; }
+.card-pad { padding: 14px 16px; }
+.card-title { font-size: 14px; font-weight: 600; }
+.card-sub { font-size: 11.5px; color: var(--ink-3); }
+.card-head { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--line-soft); }
+
+/* chips & pills */
+.chip { font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill { font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  background: #fff; border: 1px solid var(--line); color: var(--ink-2); }
+.pill .mono { font-family: var(--mono); }
+.pill-red { background: #FEE4E2; color: var(--red); border: none; }
+.forced-chip { font-size: 9px; font-weight: 700; color: var(--navy); background: var(--navy-tint);
+  border-radius: 4px; padding: 1px 5px; letter-spacing: .04em; margin-left: 7px; }
+.pct-pill { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+
+/* custom grids (display tables) */
+.bgrid { display: grid; padding: 6.5px 16px; font-size: 12.5px; border-bottom: 1px solid #F7F8FA; align-items: center; }
+.bgrid:hover { background: #FAFBFD; }
+.bgrid-head { display: grid; padding: 7px 16px; font-size: 10px; font-weight: 600;
+  letter-spacing: .07em; color: var(--muted); border-bottom: 1px solid var(--line-soft); }
+.mono { font-family: var(--mono); }
+.tbar { width: 54px; height: 5px; background: var(--line-soft); border-radius: 3px; overflow: hidden; display: inline-block; }
+.tbar > span { display: block; height: 100%; border-radius: 3px; }
+
+/* info banner */
+.bench-banner { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2);
+  background: var(--navy-tint); border: 1px solid var(--navy-line); border-radius: 7px; padding: 8px 12px; }
+
+/* dcc dropdown restyle (react-select v1 classes used by dash) */
+.bench-pick .Select-control, .bench-pick .Select--single > .Select-control {
+  border: none !important; box-shadow: none !important; background: transparent;
+  height: 26px; min-height: 26px; cursor: pointer; }
+.bench-pick .Select-value, .bench-pick .Select-placeholder { line-height: 26px !important;
+  font-size: 13px; font-weight: 600; color: var(--ink) !important; padding-left: 0 !important; }
+.bench-pick .Select-input { height: 24px; padding-left: 0; }
+.bench-pick .Select-arrow-zone { padding-right: 0; }
+.bench-pick .Select-menu-outer { font-size: 13px; border-color: var(--line); z-index: 200; }
+.bench-pick.wide { min-width: 200px; }
+
+/* dash datatable restyle */
+.dash-spreadsheet-container .dash-spreadsheet-inner table { font-family: var(--sans) !important; }
+.dash-spreadsheet-container .dash-spreadsheet-inner th {
+  font-size: 10px !important; font-weight: 600 !important; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--muted) !important; background: #fff !important;
+  border-left: none !important; border-right: none !important; border-bottom: 1px solid var(--line-soft) !important; }
+.dash-spreadsheet-container .dash-spreadsheet-inner td {
+  font-size: 12.5px !important; border-left: none !important; border-right: none !important;
+  border-bottom: 1px solid #F7F8FA !important; }
+.dash-table-container { background: #fff; }
+
+/* loading spinner tint */
+.dash-spinner, ._dash-loading { color: var(--navy) !important; }
+
+/* dropdown internals — cover both legacy (.Select-*) and newer react-select
+   (hashed classes ending in -control / -ValueContainer / etc.) so the picker
+   boxes have a single border and full-width values on any Dash version */
+.bench-pick .dash-dropdown { font-family: var(--sans); }
+.bench-pick [class$="-control"], .bench-pick [class*="-control"] {
+  border: none !important; box-shadow: none !important; background: transparent !important;
+  min-height: 26px !important; height: 26px; cursor: pointer; }
+.bench-pick [class$="-ValueContainer"], .bench-pick [class*="-ValueContainer"] {
+  padding: 0 !important; }
+.bench-pick [class$="-singleValue"], .bench-pick [class*="-singleValue"] {
+  font-size: 13px; font-weight: 600; color: var(--ink) !important;
+  max-width: none !important; }
+.bench-pick [class$="-indicatorSeparator"], .bench-pick [class*="-indicatorSeparator"] {
+  display: none !important; }
+.bench-pick [class$="-indicatorContainer"], .bench-pick [class*="-indicatorContainer"] {
+  padding: 0 2px !important; }
+.bench-pick [class$="-menu"], .bench-pick [class*="-menu"] {
+  font-size: 13px; min-width: 100%; width: max-content; max-width: 320px; }
+.bench-pick input { font-family: var(--sans) !important; }
