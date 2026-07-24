@@ -1,10 +1,30 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Big Chalk × NU Capstone — .gitignore
+# ─────────────────────────────────────────────────────────────────────────
+
 # ----- NDA / client-confidential material — never commit -----
+# Client data workbooks
 *.xlsx
 *.xls
+Anonymized Data for Project.xlsx
+# Presentation slides / decks (client kickoff + team decks — NDA)
 *.pptx
 *.ppt
-Anonymized Data for Project.xlsx
-Big Chalk Summer 2026 NU Capstone Project.pptx
+*.key
+# Meeting transcripts (NDA)
+*_otter_ai_transcript.txt
+*transcript*.txt
+# All local-only NDA material (decks, transcripts, raw exports)
+local/
+
+# ----- Agent / AI-tooling development files (not part of the deliverable) -----
+.agents/
+.codex/
+.claude/
+.cursor/
+AGENTS.md
+CODEX_HANDOFF.md
+*.inspect.ndjson
 
 # ----- Python -----
 __pycache__/
@@ -20,14 +40,10 @@ Thumbs.db
 .idea/
 .vscode/
 
-# ----- scratch / logs -----
+# ----- scratch / logs / transient artifacts -----
 *.log
 debug.txt
 out.log
 result.txt
-
-# Client meeting transcripts (NDA)
-*_otter_ai_transcript.txt
-
-# local-only working files (NDA material, decks, transcripts)
-local/
+*.uploadtmp
+*.bak

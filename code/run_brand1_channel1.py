@@ -1,8 +1,9 @@
 """
 Runner for Brand 1 x Channel 1 (updated per Alex's sponsor review, 2026-07-06).
 Generates EDA charts, the constrained model, diagnostics, and result exports.
-Everything is driven by ModelConfig + variable_config.csv — no hard-coded
-target names or variable lists. Outputs land in ../outputs/.
+Everything is driven by ModelConfig + the tiered config under configs/
+(resolved via cp.resolve_config_path) — no hard-coded target names or
+variable lists. Outputs land in ../outputs/.
 """
 import os
 import numpy as np
@@ -17,21 +18,27 @@ import capstone_pipeline as cp
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 DATA = os.path.join(ROOT, "Anonymized Data for Project.xlsx")
 OUT = os.path.join(ROOT, "outputs")
-VARCFG = os.path.join(ROOT, "variable_config.csv")
 os.makedirs(OUT, exist_ok=True)
 sns.set_theme(style="whitegrid", context="talk")
 BRAND, CHANNEL = "Brand 1", "Channel 1"
+
+# Two-tier config resolution, shared with the dashboard + run_all: this slice's
+# Product×Channel override, else the Product default under configs/. If neither
+# exists yet, main() creates the tiered default (below). The legacy root
+# variable_config.csv fallback is DEPRECATED so every entry point behaves the
+# same on a fresh dataset (ACV force lives in the config role, not here).
+_TIERED = cp.resolve_config_path(DATA, BRAND, CHANNEL)
 
 # --- run-level configuration (everything Alex asked to be adjustable) ---
 CFG = cp.ModelConfig(
     target="Volume Sales",   # any raw column can be the dependent variable
     model_weeks=104,         # set-year window (52 / 104 / 156)
-    holdout_weeks=None,      # None -> weeks beyond the window (113-104 = 9)
+    holdout_weeks=None,      # None -> always-reserved validation tail (<=13w)
     p_enter=0.05,
     default_media_decay=0.5,
-    force_include=[],        # client-mandated variables go here
+    force_include=[],        # ACV force lives in the config role, not here
     exclude=[],
-    variable_config=VARCFG if os.path.exists(VARCFG) else None,
+    variable_config=_TIERED,
 )
 
 
@@ -40,12 +47,13 @@ def main():
     y = df[CFG.target]
     tname = CFG.target
 
-    # Write the editable variable-config template on first run; afterwards
-    # the CSV (families / signs / bounds / decays / roles) is source of truth.
-    if not os.path.exists(VARCFG):
-        cp.generate_variable_config(df, VARCFG, CFG.default_media_decay)
-        CFG.variable_config = VARCFG
-        print(f"Wrote variable-config template -> {VARCFG}")
+    # If no tiered config resolved, create the Product default under configs/
+    # (auto-generated, ACV force via role) — the same file the dashboard and
+    # run_all use. Afterwards the CSV is the source of truth. When a tiered
+    # config already resolved, this is skipped.
+    if CFG.variable_config is None:
+        CFG.variable_config = cp.load_or_create_default_config(DATA, BRAND)
+        print(f"Created Product default config -> {CFG.variable_config}")
 
     # ---------------- EDA ----------------
     # 1. Target over time
@@ -91,14 +99,14 @@ def main():
         if chk["raw_total"] > 0:
             print(f"  {cname}: {chk['ratio']:.3f}")
 
-    # 5. Actual vs fitted (training window) + holdout forecast
+    # 5. Actual vs fitted (reported model, all weeks) + out-of-sample holdout
     fig, ax = plt.subplots(figsize=(13, 5))
     ax.plot(dfm["date"], ym, label="Actual", color="#2d3748", lw=2)
-    ax.plot(dfm["date"].iloc[:r["split"]], fit.fitted, label="Fitted",
+    ax.plot(dfm["date"], fit.fitted, label="Fitted (all data)",
             color="#e53e3e", lw=2, ls="--")
     if len(r["pred_te"]):
-        ax.plot(dfm["date"].iloc[r["split"]:], r["pred_te"], label="Holdout forecast",
-                color="#d69e2e", lw=2, ls="--")
+        ax.plot(dfm["date"].iloc[r["split"]:], r["pred_te"],
+                label="Holdout forecast", color="#d69e2e", lw=2, ls="--")
         ax.axvline(dfm["date"].iloc[r["split"]], color="grey", ls=":")
     ax.set_title(f"Actual vs Fitted — {BRAND} x {CHANNEL}  "
                  f"(R²={fit.r2:.2f}, MAPE={fit.mape:.1f}%)")
@@ -156,7 +164,7 @@ def main():
 
     summary = {
         "brand": BRAND, "channel": CHANNEL, "target": tname,
-        "model_weeks": r["split"], "holdout_weeks": len(r["yte"]),
+        "reported_weeks": len(r["df"]), "holdout_weeks": len(r["yte"]),
         "n_predictors_selected": len(selected),
         "n_forced": len(r["forced"]),
         "R2": round(fit.r2, 4), "adj_R2": round(fit.adj_r2, 4),

@@ -10,10 +10,14 @@ Outputs:
   ../outputs/all/<brand>_<channel>_contrib_by_year.csv
   ../outputs/all_models_summary.csv
 
-Note: ACV Weighted Distribution is force-included in every model. Rationale:
-a volume model with no distribution term cannot track shelf-presence change
-(validated on Brand 1 x Channel 1: holdout MAPE 73% -> 32%). Flag for team /
-sponsor review; per-slice overrides belong in variable_config.csv.
+Note: ACV Weighted Distribution is force-included by DEFAULT — the generated
+default config sets its ROLE to `force` (a volume model with no distribution
+term cannot track shelf-presence change; validated on Brand 1 x Channel 1:
+holdout MAPE 73% -> 32%). It is NOT hard-forced here: an analyst can override
+it to `auto` per Product/Channel and the config role is authoritative for both
+CLI and web app. Per-slice tuning lives in the two-tier configs under configs/
+(Product default + optional Product x Channel override), resolved via
+cp.resolve_config_path — the same rule the dashboard uses.
 """
 import os
 # Pin BLAS threads BEFORE numpy loads: repeated small least-squares solves
@@ -41,10 +45,13 @@ os.makedirs(OUT_ALL, exist_ok=True)
 BASE_CFG = dict(
     target="Volume Sales",
     model_weeks=104,
-    holdout_weeks=None,          # auto: tail beyond window, capped at 13
+    holdout_weeks=None,          # auto: always-reserved validation tail (<=13w)
     p_enter=0.05,
     default_media_decay=0.5,
-    force_include=["ACV Weighted Distribution"],
+    # NOTE: no force_include here. ACV force-include lives in the config file's
+    # ROLE (the generated default forces it), so it's authoritative and the
+    # analyst can override it to `auto`. Passing force_include on top would let
+    # the CLI disagree with the web app for such an override.
 )
 
 
@@ -79,7 +86,14 @@ def main():
                 print(f"{tag}: SKIPPED (target all zero)", flush=True)
                 continue
             try:
-                cfg = cp.ModelConfig(**BASE_CFG)
+                # Two-tier config: Product × Channel override wins, else the
+                # Product default (created if missing). Always a config file, so
+                # roles (incl. ACV force) are authoritative and identical to the
+                # web app — no separate force_include that could diverge.
+                cfg_file = (cp.resolve_config_path(DATA, brand, channel)
+                            or cp.load_or_create_default_config(
+                                DATA, brand, df=sheet))
+                cfg = cp.ModelConfig(**BASE_CFG, variable_config=cfg_file)
                 r = cp.run_slice(DATA, brand, channel, config=cfg, df=sheet)
                 fit, sel = r["fit"], r["selected"]
 
@@ -90,7 +104,8 @@ def main():
 
                 rows.append({
                     "brand": brand, "channel": channel,
-                    "n_weeks_train": r["split"], "n_weeks_holdout": len(r["yte"]),
+                    "n_weeks_reported": len(r["df"]),
+                    "n_weeks_holdout": len(r["yte"]),
                     "n_selected": len(sel), "n_forced": len(r["forced"]),
                     "R2": round(fit.r2, 4), "adj_R2": round(fit.adj_r2, 4),
                     "MAPE_in_pct": round(fit.mape, 2),

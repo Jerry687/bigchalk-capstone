@@ -50,18 +50,27 @@ Design principles
    ~0.7; 0.5 is the industry-standard default).
 
 5. Set-year modeling window. Model on set years (52/104/156 weeks; default the
-   latest 104), with the weeks beyond the window available as a time-based
-   holdout. Contributions are reported both weekly and summed by model year
-   for year-over-year comparison.
+   latest 104). A validation model always reserves the last up to 13 weeks as a
+   time-based holdout (independent of the window); the reported model refits the
+   same structure on the full window. Contributions are reported both weekly
+   and summed by model year for year-over-year comparison.
 
 Author: Capstone team (Feifan, Boqi, Jiahao) | June-July 2026
 """
 
 from __future__ import annotations
+import os
 import re
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Union
+
+# Serializes ALL config-file mutations within a process (shared by the
+# dashboard's save/upload/regenerate/reset and default creation here). RLock so
+# a thread already holding it can re-enter. Process-local; cross-process needs
+# OS file locks.
+_CFG_WRITE_LOCK = threading.RLock()
 
 import numpy as np
 import pandas as pd
@@ -142,15 +151,87 @@ class ModelConfig:
     """Run-level knobs. Everything the sponsor asked to be adjustable."""
     target: str = "Volume Sales"      # any raw column can be the dependent
     model_weeks: int = 104            # set-year window (52 / 104 / 156)
-    holdout_weeks: Optional[int] = None  # None -> weeks beyond model_weeks,
-    #                                      capped at 13 (one quarter) so the
-    #                                      training window stays recent
+    holdout_weeks: Optional[int] = None  # None -> ALWAYS reserve a validation
+    #                                      tail of up to 13 wks (independent of
+    #                                      model_weeks; floored to keep >=5
+    #                                      training wks). Set 0 to disable.
     vif_threshold: float = 10.0
     p_enter: float = 0.05
     default_media_decay: float = 0.5
     force_include: list = field(default_factory=list)   # client-mandated
     exclude: list = field(default_factory=list)         # never model
     variable_config: Optional[str] = None  # path to variable_config.csv
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Two-tier variable-config resolution (SINGLE SOURCE OF TRUTH for the app AND
+# the CLI runners). Product default + optional Product × Channel override;
+# override wins. Naming/paths must match what the dashboard reads and writes.
+# ─────────────────────────────────────────────────────────────────────────
+
+def _cfg_slug(s: str) -> str:
+    return "".join(ch for ch in str(s).lower() if ch.isalnum())
+
+
+def config_dir() -> str:
+    return os.path.join(os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..")), "configs")
+
+
+def default_config_path(data_path: str, sheet: str) -> str:
+    """Product DEFAULT config (channel = ALL)."""
+    ds = _cfg_slug(os.path.splitext(os.path.basename(data_path))[0])[:24]
+    return os.path.join(config_dir(), f"varconfig_{ds}_{_cfg_slug(sheet)}.csv")
+
+
+def override_config_path(data_path: str, sheet: str, channel: str) -> str:
+    """Product × Channel OVERRIDE config."""
+    ds = _cfg_slug(os.path.splitext(os.path.basename(data_path))[0])[:24]
+    return os.path.join(
+        config_dir(), f"varconfig_{ds}_{_cfg_slug(sheet)}__ch_"
+        f"{_cfg_slug(channel)}.csv")
+
+
+def resolve_config_path(data_path: str, sheet: str,
+                        channel: str) -> Optional[str]:
+    """Runtime resolution shared by dashboard + CLI: channel override if it
+    exists, else the product default if it exists, else None (caller then
+    falls back to auto-generation). Override > default."""
+    ov = override_config_path(data_path, sheet, channel)
+    if os.path.exists(ov):
+        return ov
+    dp = default_config_path(data_path, sheet)
+    if os.path.exists(dp):
+        return dp
+    return None
+
+
+# ACV force-include is baked into the generated DEFAULT config's ROLE (one
+# place), so every entry point that uses a config file honors it — and honors
+# the analyst overriding it back to `auto`. No caller should also pass
+# force_include=["ACV …"] on top of a config file, or the two disagree.
+def generate_default_config(df: pd.DataFrame) -> pd.DataFrame:
+    cfg = generate_variable_config(df)
+    cfg.loc[cfg["variable"] == "ACV Weighted Distribution", "role"] = "force"
+    return cfg
+
+
+def load_or_create_default_config(data_path: str, sheet: str, df=None,
+                                  regenerate: bool = False) -> str:
+    """Return the Product-default config path, creating it (auto-generated,
+    ACV force-included via role) if missing. Single creation path for app +
+    CLI so a fresh dataset gets identical defaults everywhere."""
+    p = default_config_path(data_path, sheet)
+    if os.path.exists(p) and not regenerate:
+        return p
+    with _CFG_WRITE_LOCK:
+        if os.path.exists(p) and not regenerate:   # re-check under lock
+            return p
+        if df is None:
+            df = pd.read_excel(data_path, sheet_name=sheet)
+        os.makedirs(config_dir(), exist_ok=True)
+        generate_default_config(df).to_csv(p, index=False)
+    return p
 
 
 # Anything that algebraically decomposes the *default* target. When the target
@@ -525,70 +606,97 @@ def run_slice(path: str, brand_sheet: str, channel: str,
     if cfg.target not in df_full.columns:
         raise ValueError(f"Target '{cfg.target}' not in data")
 
-    # --- set-year window + time-based holdout (Alex: model on set years;
-    # holdout = the weeks beyond the 104-week window, not a fixed 26) ---
+    # --- window + ALWAYS-reserved validation tail (Jerry / M1) ---
+    # ONE structure, two fits:
+    #   The VALIDATION model SELECTS the variable structure on the window ending
+    #   BEFORE an always-reserved tail (up to 13 wks) — selection never sees the
+    #   tail (no leakage) — and is scored on that tail => the out-of-sample
+    #   holdout MAPE. The REPORTED model refits the SAME structure on the full
+    #   window ending at the latest week (all data incl. the tail) => the
+    #   coefficients/due-tos we display. So the holdout validates the SAME
+    #   structure and modeling process out-of-sample (the reported coefficients
+    #   are that structure refit on all data — the holdout is not a check of
+    #   those exact refit values), and the reported metric is a true
+    #   out-of-sample number (never the all-data in-sample fit relabeled).
     n = len(df_full)
-    hold = cfg.holdout_weeks if cfg.holdout_weeks is not None \
-        else min(max(n - cfg.model_weeks, 0), 13)
-    train_end = n - hold                       # train window ends here
-    train_start = max(train_end - cfg.model_weeks, 0)
-    df = df_full.iloc[train_start:n].reset_index(drop=True)  # model + holdout
-    split = train_end - train_start            # index where holdout begins
+    mw = int(cfg.model_weeks)
+    cap = cfg.holdout_weeks if cfg.holdout_weeks is not None else 13
+    val_hold = int(min(max(cap, 0), max(n - 1, 0)))
+    if n - val_hold < 5:                        # keep ≥5 training weeks
+        val_hold = max(0, n - 5)
 
-    # --- candidate predictors from the config table ---
-    specs = build_feature_specs(df, media_decay=cfg.default_media_decay,
+    # candidate predictors (config-driven; identical across windows)
+    specs = build_feature_specs(df_full, media_decay=cfg.default_media_decay,
                                 config=cfg.variable_config)
-
-    # dynamic leakage guard: drop decompositions of whatever the target is
     leak = tuple({cfg.target, "Dollar Sales", "Volume Sales"}
                  if cfg.target.startswith(("Volume Sales", "Dollar Sales"))
                  else {cfg.target})
     specs = [s for s in specs
              if s.name != cfg.target and not s.name.startswith(leak)]
-
-    # roles: config table + run-level lists
     force = [s.name for s in specs if s.role == "force"] + \
-            [c for c in cfg.force_include if c in df.columns]
+            [c for c in cfg.force_include if c in df_full.columns]
     drop = {s.name for s in specs if s.role == "exclude"} | set(cfg.exclude)
     specs = [s for s in specs if s.name not in drop]
     specs_by_name = {s.name: s for s in specs}
     force = [c for c in dict.fromkeys(force) if c in specs_by_name]
+    spec_names = [s.name for s in specs]
 
-    X_all = assemble_matrix(df, specs)
-    X_raw = df[[s.name for s in specs]].copy()   # pre-adstock, for masks
-    y = df[cfg.target].astype(float)
-    ytr, Xtr = y.iloc[:split], X_all.iloc[:split]
+    def _assemble(a, b):
+        dfx = df_full.iloc[a:b].reset_index(drop=True)
+        return (dfx, assemble_matrix(dfx, specs), dfx[spec_names].copy(),
+                dfx[cfg.target].astype(float))
 
-    # --- adstock sanity: totals of decayed ~= raw per media variable ---
+    def _select(Xtr, ytr):
+        """VIF prune + forward stepwise + dead-coef prune -> selected names."""
+        Xz = (Xtr - Xtr.mean()) / Xtr.std(ddof=0)
+        Xz = Xz.loc[:, Xz.std() > 0]
+        favail = [c for c in force if c in Xz.columns]
+        vif_keep = prune_by_vif(Xz, threshold=cfg.vif_threshold, protect=favail)
+        selected = forward_stepwise(Xz[vif_keep], ytr, p_enter=cfg.p_enter,
+                                    start_with=favail) or vif_keep[:5]
+        sd = Xtr[selected].std(ddof=0)
+        for _ in range(len(selected)):
+            f = constrained_fit(Xtr[selected], ytr, specs_by_name)
+            impact = {c: abs(f.coef[c]) * sd[c] for c in selected}
+            scale = max(impact.values()) or 1.0
+            dead = [c for c in selected
+                    if impact[c] / scale < 1e-4 and c not in favail]
+            if not dead:
+                break
+            selected = [c for c in selected if c not in dead]
+        return selected
+
+    # REPORTED window (full history-length ending at the latest week)
+    df, X_all, X_raw, y = _assemble(max(n - mw, 0), n)
+
+    # VALIDATION: SELECT on training (no tail leakage) + score the reserved tail
+    holdout_mape = np.nan
+    pred_te = yte = np.array([])
+    if val_hold > 0:
+        val_end = n - val_hold
+        vdf, vX, _, vy = _assemble(max(val_end - mw, 0), n)
+        sv = len(vdf) - val_hold
+        selected = _select(vX.iloc[:sv], vy.iloc[:sv])
+        vfit = constrained_fit(vX[selected].iloc[:sv], vy.iloc[:sv], specs_by_name)
+        Xte = np.column_stack([np.ones(val_hold),
+                               vX[selected].iloc[sv:].values])
+        pred_te = Xte @ vfit.coef.values
+        yte = vy.iloc[sv:].values
+        nz = yte != 0
+        holdout_mape = float(np.mean(np.abs((yte[nz] - pred_te[nz]) / yte[nz]))) * 100 \
+            if nz.any() else np.nan
+    else:                                       # no tail -> select on reported
+        selected = _select(X_all, y)
+
+    # REPORTED model — the SAME structure, refit on the full reported window
+    fit = constrained_fit(X_all[selected], y, specs_by_name)
+    force_avail = [c for c in force if c in selected]
+    split = len(df) - val_hold                  # where the reserved tail begins
+
     adstock_checks = {s.name: adstock_totals_check(df[s.name].values, s.adstock_decay)
                       for s in specs if s.adstock_decay is not None}
 
-    # --- selection on standardized TRAINING data only ---
-    Xz = (Xtr - Xtr.mean()) / Xtr.std(ddof=0)
-    Xz = Xz.loc[:, Xz.std() > 0]
-    force_avail = [c for c in force if c in Xz.columns]
-
-    vif_keep = prune_by_vif(Xz, threshold=cfg.vif_threshold, protect=force_avail)
-    selected = forward_stepwise(Xz[vif_keep], ytr, p_enter=cfg.p_enter,
-                                start_with=force_avail)
-    if not selected:
-        selected = vif_keep[:5]
-
-    # Final constrained fit in ORIGINAL units on the training window, pruning
-    # zero-bound (dead) coefficients - but never pruning forced variables.
-    sd = Xtr[selected].std(ddof=0)
-    for _ in range(len(selected)):
-        fit = constrained_fit(Xtr[selected], ytr, specs_by_name)
-        impact = {c: abs(fit.coef[c]) * sd[c] for c in selected}
-        scale = max(impact.values()) or 1.0
-        dead = [c for c in selected
-                if impact[c] / scale < 1e-4 and c not in force_avail]
-        if not dead:
-            break
-        selected = [c for c in selected if c not in dead]
-    fit = constrained_fit(Xtr[selected], ytr, specs_by_name)
-
-    # sign-conflict diagnostic: where unconstrained OLS wants the opposite sign
+    # sign-conflict diagnostic on the REPORTED fit
     sign_conflicts = []
     for c in selected:
         prior = specs_by_name[c].sign
@@ -598,22 +706,9 @@ def run_slice(path: str, brand_sheet: str, channel: str,
         elif prior == "negative" and t > 1.96:
             sign_conflicts.append((c, prior, "data says positive", float(t)))
 
-    # --- time-based holdout validation on the tail ---
-    holdout_mape = np.nan
-    pred_te = yte = np.array([])
-    if split < len(df):
-        Xte = np.column_stack([np.ones(len(df) - split),
-                               X_all[selected].iloc[split:].values])
-        pred_te = Xte @ fit.coef.values
-        yte = y.iloc[split:].values
-        nz = yte != 0
-        holdout_mape = float(np.mean(np.abs((yte[nz] - pred_te[nz]) / yte[nz]))) * 100 \
-            if nz.any() else np.nan
-
-    # --- contribution reporting (training window) ---
-    dates_tr = df["date"].iloc[:split]
-    contrib_by_year = contributions_by_year(fit, dates_tr)
-    avg_contrib = avg_weekly_contributions(fit, X_raw.iloc[:split], specs_by_name)
+    # contributions over the FULL reported window (all data incl. former tail)
+    contrib_by_year = contributions_by_year(fit, df["date"])
+    avg_contrib = avg_weekly_contributions(fit, X_raw, specs_by_name)
 
     return {
         "df": df, "config": cfg, "specs": specs, "specs_by_name": specs_by_name,
@@ -621,7 +716,7 @@ def run_slice(path: str, brand_sheet: str, channel: str,
         "forced": force_avail, "fit": fit,
         "holdout_mape": holdout_mape, "split": split,
         "pred_te": pred_te, "yte": yte, "sign_conflicts": sign_conflicts,
-        "adstock_checks": adstock_checks,
+        "adstock_checks": adstock_checks, "val_hold": val_hold,
         "contrib_by_year": contrib_by_year, "avg_contrib": avg_contrib,
     }
 
