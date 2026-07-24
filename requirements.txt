@@ -5,4 +5,5 @@ statsmodels
 matplotlib
 seaborn
 openpyxl
-dash
+dash>=2.9
+plotly
