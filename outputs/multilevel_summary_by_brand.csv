@@ -1,0 +1,11 @@
+brand,shrink,unpooled,pooled,hierarchical,winner
+Brand 1,0.5,33.16,58.26,43.23,unpooled
+Brand 10,0.75,5.98,22.17,18.53,unpooled
+Brand 2,0.0,12.26,20.53,20.53,unpooled
+Brand 3,1.0,7.4,13.63,7.22,hierarchical
+Brand 4,1.0,15.45,13.49,6.68,hierarchical
+Brand 5,1.0,9.47,23.4,10.33,unpooled
+Brand 6,0.0,20.67,30.83,30.83,unpooled
+Brand 7,0.0,10.47,21.96,21.96,unpooled
+Brand 8,0.0,14.06,23.77,23.77,unpooled
+Brand 9,1.0,22.32,29.33,17.34,hierarchical
