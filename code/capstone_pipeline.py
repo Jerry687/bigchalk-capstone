@@ -98,6 +98,72 @@ def load_slice(path: str, brand_sheet: str, channel: str) -> pd.DataFrame:
     return df
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# 1b. FIXED calendar window (Alex, 2026-07-27)
+#
+# The window used to be "the last `model_weeks` ROWS of whatever this slice
+# happens to have" — data-dependent. A slice that was delisted in Jun 2023
+# (Brand 1/2 x Channel 8: 25 weeks, all of them 18 months before the modeled
+# period) therefore still produced a model, and its due-tos leaked into the
+# exports as a disjoint chunk of history with no neighbours.
+#
+# Now the window is an ABSOLUTE date range, anchored to the LATEST week in the
+# DATASET (not in the slice) and identical for every Brand x Channel:
+#     [anchor - (model_weeks-1) weeks  ..  anchor]
+# The data is dependent on the window, not the window on the data. A slice with
+# too little data INSIDE that range is not modeled at all — it raises
+# InsufficientWindowData and is reported as skipped, with the reason.
+# ─────────────────────────────────────────────────────────────────────────
+
+class InsufficientWindowData(ValueError):
+    """Raised when a slice does not have enough data inside the fixed window
+    to be worth modeling. Carries the counts so callers can report WHY."""
+
+    def __init__(self, message: str, *, weeks: int = 0, nonzero: int = 0,
+                 window_start=None, window_end=None):
+        super().__init__(message)
+        self.weeks = weeks
+        self.nonzero = nonzero
+        self.window_start = window_start
+        self.window_end = window_end
+
+
+_ANCHOR_CACHE: dict = {}
+
+
+def dataset_anchor_week(path: str, sheets: Optional[list] = None):
+    """The latest week present ANYWHERE in the workbook — the common anchor
+    every slice's window ends on. Cached per (path, mtime, size) so repeated
+    runs don't re-read the workbook."""
+    key = None
+    try:
+        st = os.stat(path)
+        key = (os.path.abspath(path), st.st_mtime, st.st_size)
+        if key in _ANCHOR_CACHE:
+            return _ANCHOR_CACHE[key]
+    except OSError:
+        pass
+    xl = pd.ExcelFile(path)
+    names = sheets or [s for s in xl.sheet_names if s.lower().startswith("brand")]
+    latest = None
+    for s in names:
+        d = xl.parse(s, usecols=["Time"])["Time"].apply(_parse_week).max()
+        if d is not None and (latest is None or d > latest):
+            latest = d
+    latest = pd.Timestamp(latest) if latest is not None else None
+    if key is not None:
+        _ANCHOR_CACHE[key] = latest
+    return latest
+
+
+def resolve_window(anchor, model_weeks: int):
+    """(start, end) timestamps for a `model_weeks`-long window ending on the
+    anchor week, inclusive of both ends."""
+    end = pd.Timestamp(anchor)
+    start = end - pd.Timedelta(weeks=int(model_weeks) - 1)
+    return start, end
+
+
 # ---------------------------------------------------------------------------
 # 2. Transforms
 # ---------------------------------------------------------------------------
@@ -120,6 +186,62 @@ def adstock(x: np.ndarray, decay: float = 0.5) -> np.ndarray:
     return out
 
 
+def hill(x: np.ndarray, midpoint: float, slope: float,
+         ref: Optional[float] = None) -> np.ndarray:
+    """HILL SATURATION — the second non-linearity of media (Alex 2026-07-27).
+
+        H(x) = x^s / (x^s + k^s)          k = midpoint × ref
+
+    Alex described this curve on the call and half-remembered its origin:
+    "some Bill and this other data scientist created this for the efficacy of
+    drugs… a curve that has a midpoint and a slope, so it makes it sigmoidal."
+    It is the **Hill equation** — A. V. Hill, 1910, fitting oxygen binding to
+    haemoglobin, later the standard dose–response curve in pharmacology, and
+    now the saturation function in both Meta's Robyn and Google's Meridian.
+    Same shape, same two parameters he named.
+
+    Parameters
+    ----------
+    midpoint : the half-saturation point as a FRACTION of `ref` (γ ∈ (0, 1]).
+        At x = γ·ref the response is exactly half of its maximum. Expressed
+        as a fraction so the parameter transfers across brands and channels
+        whose spend levels differ by orders of magnitude.
+    slope : the shape s.
+        s > 1 gives the S-curve Alex described — slow start ("the first 10
+        impressions probably don't do a lot"), steep through the midpoint,
+        then flattening. s < 1 gives a concave curve that diminishes straight
+        from the origin, which aggregate weekly data often prefers.
+    ref : the scale the midpoint is a fraction OF — the max of the (adstocked)
+        series. MUST be computed on training weeks only and then reused, or
+        the transform itself peeks at the holdout.
+
+    Returns values in [0, 1): the coefficient on a saturated variable is
+    therefore the **maximum weekly volume that variable can deliver**, and
+    contributions stay additive, so the due-to decomposition is unchanged.
+    """
+    x = np.asarray(x, dtype=float)
+    if ref is None:
+        ref = float(np.nanmax(x)) if x.size else 0.0
+    k = float(midpoint) * float(ref)
+    if not np.isfinite(k) or k <= 0:
+        return np.zeros_like(x)
+    s = float(slope)
+    # negatives can't be raised to a fractional power; media is non-negative
+    # anyway, and clipping keeps a stray negative from producing a NaN column
+    xs = np.power(np.clip(x, 0.0, None), s)
+    ks = k ** s
+    out = xs / (xs + ks)
+    return np.nan_to_num(out, nan=0.0, posinf=1.0, neginf=0.0)
+
+
+def saturation_ref(x: np.ndarray) -> float:
+    """The reference scale a Hill midpoint is a fraction of. Uses the max of
+    the series it is given — callers pass TRAINING rows only."""
+    x = np.asarray(x, dtype=float)
+    m = float(np.nanmax(x)) if x.size else 0.0
+    return m if np.isfinite(m) and m > 0 else 0.0
+
+
 def adstock_totals_check(x: np.ndarray, decay: float = 0.5) -> dict:
     """Sanity check: total adstocked vs total raw (should be ~1.0; slightly
     below because the tail of the decay extends past the data window)."""
@@ -136,7 +258,8 @@ def adstock_totals_check(x: np.ndarray, decay: float = 0.5) -> dict:
 @dataclass
 class FeatureSpec:
     """One candidate predictor: source column, family, expected sign,
-    optional custom coefficient bounds and per-variable adstock decay."""
+    optional custom coefficient bounds, per-variable adstock decay and
+    reporting scale."""
     name: str
     family: str
     sign: str = "unconstrained"            # 'positive' | 'negative' | 'unconstrained'
@@ -144,6 +267,19 @@ class FeatureSpec:
     coef_lower: Optional[float] = None     # custom bound overrides sign
     coef_upper: Optional[float] = None
     role: str = "auto"                     # 'auto' | 'force' | 'exclude'
+    # Divide the variable by this before modeling (Alex 2026-07-27: "really
+    # big things we'll divide by 1000 or 10,000, usually with media
+    # impressions… if you want to scale it, include that scale in the variable
+    # tab"). The coefficient is then read "per 1,000 impressions" instead of
+    # "per impression" — a units change, NOT a model change: β is divided and
+    # x multiplied by the same constant, so every contribution, due-to and
+    # fitted value is bit-for-bit identical. Custom bounds are stated in
+    # ORIGINAL units and transformed with it.
+    scale: float = 1.0
+    # Hill saturation (F3). Both None = no saturation, i.e. the variable stays
+    # linear — the historical behaviour and still the default.
+    sat_midpoint: Optional[float] = None   # γ: half-saturation as a fraction
+    sat_slope: Optional[float] = None      # s: shape (>1 S-curve, <1 concave)
 
 
 @dataclass
@@ -151,10 +287,29 @@ class ModelConfig:
     """Run-level knobs. Everything the sponsor asked to be adjustable."""
     target: str = "Volume Sales"      # any raw column can be the dependent
     model_weeks: int = 104            # set-year window (52 / 104 / 156)
+    # FIXED window (Alex 2026-07-27). `window_end` is the shared anchor week
+    # every slice's window ends on — pass the DATASET-wide latest week
+    # (cp.dataset_anchor_week) so all slices model the SAME calendar range.
+    # None -> derived from the data handed to run_slice (whole brand sheet,
+    # all channels) as a fallback; never from the single channel's own tail.
+    window_end: Optional[object] = None
+    # A slice needs at least this much data INSIDE the window to be modeled;
+    # otherwise it is skipped with a reason instead of producing a phantom
+    # model out of stale history.
+    min_weeks: int = 52               # weeks of any data in the window
+    min_nonzero_weeks: int = 26       # weeks with a non-zero target
     holdout_weeks: Optional[int] = None  # None -> ALWAYS reserve a validation
     #                                      tail of up to 13 wks (independent of
     #                                      model_weeks; floored to keep >=5
     #                                      training wks). Set 0 to disable.
+    # ── selection hyperparameters (Alex 2026-07-27: "is there a way to be
+    # more specific on our end with being overly punitive with your variable
+    # selection, or really lax — is that a parameter that we can adjust?") ──
+    # `max_per_family` caps how many variables of each family may enter, e.g.
+    # {"Trade": 3, "Competitive": 2, "Macro": 2} — his "I want only two to
+    # three trade, but I want all media". EMPTY BY DEFAULT: no caps, so
+    # existing results are untouched until someone opts in.
+    max_per_family: dict = field(default_factory=dict)
     vif_threshold: float = 10.0
     p_enter: float = 0.05
     default_media_decay: float = 0.5
@@ -252,6 +407,28 @@ def _suggest_decay(col: str, default: float) -> float:
     return default
 
 
+def _suggest_scale(col: str, df: pd.DataFrame) -> float:
+    """Starting scale for a variable: a round power of 10 that brings a very
+    large series into a readable range, so a media coefficient reads "per
+    1,000 impressions" rather than per impression (Alex). Only ever a
+    suggestion — the config CSV is the source of truth once edited, and the
+    scale changes units only, never the fit."""
+    try:
+        m = float(pd.to_numeric(df[col], errors="coerce").abs().max())
+    except Exception:
+        return 1.0
+    # deliberately conservative: only series big enough that the raw
+    # coefficient is unreadable get a suggestion, so a fresh config doesn't
+    # surprise anyone with unfamiliar units on ordinary variables
+    if not np.isfinite(m):
+        return 1.0
+    if m >= 1e9:
+        return 1e6
+    if m >= 1e6:
+        return 1e3
+    return 1.0
+
+
 def generate_variable_config(df: pd.DataFrame, path: Optional[str] = None,
                              default_media_decay: float = 0.5) -> pd.DataFrame:
     """Build a starter variable-config table from naming heuristics and
@@ -259,11 +436,17 @@ def generate_variable_config(df: pd.DataFrame, path: Optional[str] = None,
     truth once the analyst edits it - rename/add columns freely there."""
     rows = []
 
-    def add(name, family, sign, decay=None, lo=None, hi=None, role="auto"):
+    def add(name, family, sign, decay=None, lo=None, hi=None, role="auto",
+            scale=None):
         if name in df.columns:
             rows.append({"variable": name, "family": family, "sign": sign,
                          "adstock_decay": decay, "coef_lower": lo,
-                         "coef_upper": hi, "role": role})
+                         "coef_upper": hi, "role": role,
+                         "scale": scale if scale is not None
+                         else _suggest_scale(name, df),
+                         # saturation off by default — the optimizer or the
+                         # analyst turns it on per variable
+                         "sat_midpoint": None, "sat_slope": None})
 
     add("Price per Volume", "Price", "negative")
     add("Total Category Price Per Volume", "Category Price", "positive")
@@ -317,6 +500,10 @@ def load_variable_config(cfg: Union[str, pd.DataFrame],
         def _f(key):
             v = r.get(key)
             return None if pd.isna(v) else float(v)
+        sc = _f("scale")
+        mid, slp = _f("sat_midpoint"), _f("sat_slope")
+        if mid is None or slp is None:      # both or neither
+            mid = slp = None
         specs.append(FeatureSpec(
             name=name,
             family=str(r.get("family", "Other")),
@@ -325,6 +512,13 @@ def load_variable_config(cfg: Union[str, pd.DataFrame],
             coef_lower=_f("coef_lower"),
             coef_upper=_f("coef_upper"),
             role=str(r.get("role", "auto") or "auto").strip().lower(),
+            # a missing/0/negative scale is meaningless — fall back to 1 rather
+            # than dividing the data by zero or flipping its sign
+            scale=(sc if sc and sc > 0 else 1.0),
+            # saturation needs BOTH parameters to be meaningful; half a
+            # specification is treated as "no saturation" rather than guessed
+            sat_midpoint=(mid if mid and 0 < mid <= 1 else None),
+            sat_slope=(slp if slp and slp > 0 else None),
         ))
     return specs
 
@@ -340,15 +534,59 @@ def build_feature_specs(df: pd.DataFrame, media_decay: float = 0.5,
         generate_variable_config(df, default_media_decay=media_decay), df)
 
 
-def assemble_matrix(df: pd.DataFrame, specs: list) -> pd.DataFrame:
-    """Build the design matrix, applying per-variable adstock to media."""
+def assemble_matrix(df: pd.DataFrame, specs: list,
+                    sat_refs: Optional[dict] = None) -> pd.DataFrame:
+    """Build the design matrix in the standard MMM order:
+
+        raw  →  adstock (carry-over)  →  scale (units)  →  Hill (saturation)
+
+    Adstock first because carry-over is about *when* the impression lands;
+    saturation last because diminishing returns apply to the accumulated
+    pressure, not to each week's raw spend. (Same order as Robyn/Meridian.)
+
+    `sat_refs` maps variable -> the reference scale its Hill midpoint is a
+    fraction of. Callers pass refs computed on TRAINING rows only; when a
+    saturated variable has no ref supplied, this falls back to the max of the
+    column it was handed — fine for a one-shot transform, wrong for a
+    train/validate split, which is why run_slice always supplies them.
+    """
+    sat_refs = sat_refs or {}
     out = {}
     for s in specs:
         x = df[s.name].astype(float).values
         if s.adstock_decay is not None:
             x = adstock(x, s.adstock_decay)
+        sc = getattr(s, "scale", 1.0) or 1.0
+        if sc != 1.0:
+            x = x / sc
+        mid = getattr(s, "sat_midpoint", None)
+        slp = getattr(s, "sat_slope", None)
+        if mid is not None and slp is not None:
+            # note: Hill is invariant to `scale` (the reference scales with
+            # the data), so a saturated variable's coefficient is already in
+            # volume units — the scale simply stops mattering for it
+            x = hill(x, mid, slp, ref=sat_refs.get(s.name))
         out[s.name] = x
     return pd.DataFrame(out, index=df.index)
+
+
+def saturation_refs_for(df: pd.DataFrame, specs: list,
+                        rows: Optional[slice] = None) -> dict:
+    """Reference scale per saturated variable, from `rows` (training only):
+    the max of the adstocked, scaled series before saturation."""
+    refs = {}
+    for s in specs:
+        if getattr(s, "sat_midpoint", None) is None \
+                or getattr(s, "sat_slope", None) is None:
+            continue
+        x = df[s.name].astype(float).values
+        if s.adstock_decay is not None:
+            x = adstock(x, s.adstock_decay)
+        sc = getattr(s, "scale", 1.0) or 1.0
+        if sc != 1.0:
+            x = x / sc
+        refs[s.name] = saturation_ref(x[rows] if rows is not None else x)
+    return refs
 
 
 # ---------------------------------------------------------------------------
@@ -413,10 +651,33 @@ def _pvalue_of_last(Xd: np.ndarray, y: np.ndarray) -> float:
 
 
 def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05,
-                     start_with: Optional[list] = None) -> list:
+                     start_with: Optional[list] = None,
+                     family_of: Optional[dict] = None,
+                     max_per_family: Optional[dict] = None) -> list:
     """Forward selection by lowest p-value, keeping additions significant.
-    `start_with` (force-include) variables are seeded into the model."""
+    `start_with` (force-include) variables are seeded into the model.
+
+    `max_per_family` caps how many variables of a family may enter (Alex:
+    "I want only two to three trade, but I want all media"). The cap is
+    applied at ENTRY, not by trimming afterwards, so the family spends its
+    budget on its most significant members: once Trade holds 3, further Trade
+    candidates are simply not offered and the search continues with the rest —
+    which is what "be more restrictive by group" has to mean if the remaining
+    families are still to be selected properly.
+
+    Forced variables are seeded regardless and may push a family over its cap:
+    the client paid for them (same precedence as VIF pruning). They do count
+    toward the budget, so a cap of 2 with 2 forced Trade variables admits no
+    further Trade.
+    """
+    family_of = family_of or {}
+    caps = {str(k): int(v) for k, v in (max_per_family or {}).items()
+            if v is not None and str(v) != "" and int(v) > 0}
     selected = [c for c in (start_with or []) if c in X.columns]
+    counts: dict = {}
+    for c in selected:
+        f = family_of.get(c)
+        counts[f] = counts.get(f, 0) + 1
     remaining = [c for c in X.columns if c not in selected]
     yv = y.values.astype(float)
     ones = np.ones((len(X), 1))
@@ -424,6 +685,9 @@ def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05,
         base = X[selected].values if selected else np.empty((len(X), 0))
         best_p, best_c = 1.0, None
         for c in remaining:
+            fam = family_of.get(c)
+            if fam in caps and counts.get(fam, 0) >= caps[fam]:
+                continue                    # this family is full
             Xd = np.column_stack([ones, base, X[c].values])
             p = _pvalue_of_last(Xd, yv)
             if p < best_p:
@@ -431,8 +695,10 @@ def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05,
         if best_c is not None and best_p < p_enter:
             selected.append(best_c)
             remaining.remove(best_c)
+            fam = family_of.get(best_c)
+            counts[fam] = counts.get(fam, 0) + 1
         else:
-            break
+            break                           # nothing significant and allowed
     return selected
 
 
@@ -442,13 +708,21 @@ def forward_stepwise(X: pd.DataFrame, y: pd.Series, p_enter: float = 0.05,
 
 def _bounds_from_specs(specs_by_name: dict, cols: list):
     """(lower, upper) bounds per coefficient. Custom bounds in the config
-    override the sign default; intercept is always unconstrained."""
+    override the sign default; intercept is always unconstrained.
+
+    Bounds are written by the analyst in ORIGINAL units ("this coefficient
+    must stay under 1"), but the fit happens on x/scale, where the coefficient
+    is `scale` times larger. So a bound must be multiplied by the scale to
+    keep meaning the same thing — otherwise setting a scale would silently
+    tighten every custom bound by a factor of 1,000. Sign constraints need no
+    such treatment: dividing by a positive scale can't flip a sign."""
     lo, hi = [-np.inf], [np.inf]  # intercept
     for c in cols:
         s = specs_by_name[c]
+        sc = getattr(s, "scale", 1.0) or 1.0
         if s.coef_lower is not None or s.coef_upper is not None:
-            lo.append(s.coef_lower if s.coef_lower is not None else -np.inf)
-            hi.append(s.coef_upper if s.coef_upper is not None else np.inf)
+            lo.append(s.coef_lower * sc if s.coef_lower is not None else -np.inf)
+            hi.append(s.coef_upper * sc if s.coef_upper is not None else np.inf)
         elif s.sign == "positive":
             lo.append(0.0); hi.append(np.inf)
         elif s.sign == "negative":
@@ -470,6 +744,20 @@ class FitResult:
     contributions: pd.DataFrame  # per-row additive due-tos (intercept separate)
     tstats: pd.Series            # from unconstrained OLS (inference reference)
     vif: pd.Series
+    # COMPARABLE coefficients (Arko 2026-07-27). A raw coefficient can't be
+    # compared across variables because the inputs live on different supports
+    # — "you can't really compare the coefficient for ACV weighted
+    # distribution versus the five-year inflation expectations or gas price,
+    # because the support you're using to build the model is not comparable".
+    # These put every driver in the SAME unit — volume — by multiplying the
+    # coefficient by how much the variable actually moves:
+    #   beta_std   = β × SD(x)      volume per 1 standard-deviation move
+    #   beta_range = β × (max−min)  volume across the full observed range
+    # Both are invariant to `scale` (β shrinks exactly as SD grows), so they
+    # are stable no matter how the analyst sets the units, and neither
+    # changes the model: they are read-outs, not a re-parameterization.
+    beta_std: pd.Series = field(default_factory=pd.Series)
+    beta_range: pd.Series = field(default_factory=pd.Series)
     meta: dict = field(default_factory=dict)
 
 
@@ -509,8 +797,14 @@ def constrained_fit(X: pd.DataFrame, y: pd.Series, specs_by_name: dict) -> FitRe
     vif = pd.Series({c: variance_inflation_factor(Xc.values, i + 1)
                      for i, c in enumerate(cols)})
 
+    # comparable coefficients — same unit (volume) for every driver
+    sd = X.std(ddof=0)
+    rng = X.max() - X.min()
+    beta_std = pd.Series({c: float(coef[c] * sd[c]) for c in cols})
+    beta_range = pd.Series({c: float(coef[c] * rng[c]) for c in cols})
+
     return FitResult(cols, coef, fitted, resid, r2, adj_r2, mape,
-                     contrib, tstats, vif,
+                     contrib, tstats, vif, beta_std, beta_range,
                      meta={"durbin_watson": float(sm.stats.durbin_watson(resid))})
 
 
@@ -549,6 +843,62 @@ def contributions_by_year(fit: FitResult, dates: pd.Series) -> pd.DataFrame:
         prev = out[cols[-2]].replace(0, np.nan)
         out["YoY_pct"] = (out["YoY_change"] / prev.abs()) * 100
     return out
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# CONTRIBUTION vs DUE-TO  (Arko + Alex, 2026-07-27)
+#
+# These are two different numbers and the tool was showing only the first
+# under the second's name:
+#   CONTRIBUTION = how much volume this driver accounts for IN a period
+#                  (a level: Σ βᵢ·xᵢ over the period's weeks).
+#   DUE-TO       = how much of the CHANGE between two periods this driver
+#                  explains (a delta: contribution in B − contribution in A).
+# "How is the change in macro variables impacting my sales year to year" is a
+# due-to question; the period totals alone cannot answer it. Both are kept —
+# the due-to is what most readers of the deck actually care about.
+# ─────────────────────────────────────────────────────────────────────────
+
+def contributions_by_period(fit: FitResult, dates: pd.Series,
+                            periods: dict) -> pd.DataFrame:
+    """Total signed contribution per driver (rows) per named period (cols).
+    `periods` maps a label -> a list/array of positional week indexes."""
+    tbl = fit.contributions.reset_index(drop=True)
+    out = {}
+    for label, idx in periods.items():
+        idx = [i for i in idx if 0 <= i < len(tbl)]
+        out[label] = (tbl.iloc[idx].sum() if idx
+                      else pd.Series(0.0, index=tbl.columns))
+    return pd.DataFrame(out)
+
+
+def due_to_change(totals: pd.DataFrame, period_a: str, period_b: str,
+                  weeks: Optional[dict] = None,
+                  normalize: bool = False) -> pd.DataFrame:
+    """Period-over-period due-to: what the move from A to B is DUE TO.
+
+    Columns: the two period levels, the absolute change (B − A), that change
+    as a % of A, and each driver's share of the total modeled change.
+    `normalize=True` compares per-week averages instead of totals — use it
+    when the two periods have different lengths (e.g. latest 4 wks vs a year),
+    otherwise a longer period looks bigger purely because it is longer.
+    """
+    a = totals[period_a].astype(float).copy()
+    b = totals[period_b].astype(float).copy()
+    if normalize and weeks:
+        na, nb = max(int(weeks.get(period_a, 0)), 1), max(int(weeks.get(period_b, 0)), 1)
+        a, b = a / na, b / nb
+    change = b - a
+    denom = a.abs().replace(0, np.nan)
+    total_change = float(change.sum())
+    out = pd.DataFrame({
+        period_a: a, period_b: b,
+        "due_to": change,
+        "pct_change": (change / denom) * 100,
+        "share_of_change_pct": (change / total_change * 100
+                                if total_change else np.nan),
+    })
+    return out.sort_values("due_to", key=lambda s: s.abs(), ascending=False)
 
 
 def avg_weekly_contributions(fit: FitResult, X_raw: pd.DataFrame,
@@ -598,13 +948,50 @@ def run_slice(path: str, brand_sheet: str, channel: str,
     if holdout_weeks is not None: cfg.holdout_weeks = holdout_weeks
 
     if df is not None:
-        df_full = df[df["Geography"] == channel].copy()
-        df_full["date"] = df_full["Time"].apply(_parse_week)
+        df_all = df.copy()
+        df_all["date"] = df_all["Time"].apply(_parse_week)
+        df_full = df_all[df_all["Geography"] == channel].copy()
         df_full = df_full.sort_values("date").reset_index(drop=True)
     else:
+        df_all = None
         df_full = load_slice(path, brand_sheet, channel)
     if cfg.target not in df_full.columns:
         raise ValueError(f"Target '{cfg.target}' not in data")
+
+    # --- FIXED calendar window (Alex 2026-07-27) --------------------------
+    # Anchor precedence: explicit cfg.window_end > dataset-wide latest week
+    # (read from the workbook) > latest week across ALL channels of the sheet
+    # we were handed. Never the single slice's own last row — that is exactly
+    # the bug: a delisted slice would silently model 2023 data and emit
+    # due-tos for a period nobody is looking at.
+    anchor = cfg.window_end
+    if anchor is None and path:
+        try:
+            anchor = dataset_anchor_week(path)
+        except Exception:
+            anchor = None
+    if anchor is None and df_all is not None:
+        anchor = df_all["date"].max()
+    if anchor is None:
+        anchor = df_full["date"].max()
+    win_start, win_end = resolve_window(anchor, cfg.model_weeks)
+
+    in_win = (df_full["date"] >= win_start) & (df_full["date"] <= win_end)
+    df_win = df_full[in_win].sort_values("date").reset_index(drop=True)
+    n_win = len(df_win)
+    tgt_vals = pd.to_numeric(df_win[cfg.target], errors="coerce").fillna(0) \
+        if n_win else pd.Series(dtype=float)
+    n_nonzero = int((tgt_vals != 0).sum())
+    if n_win < cfg.min_weeks or n_nonzero < cfg.min_nonzero_weeks:
+        raise InsufficientWindowData(
+            f"only {n_win} weeks ({n_nonzero} with non-zero {cfg.target}) "
+            f"inside the modeling window "
+            f"{win_start:%Y-%m-%d}..{win_end:%Y-%m-%d} — needs "
+            f"{cfg.min_weeks} weeks / {cfg.min_nonzero_weeks} selling weeks; "
+            "not modeled",
+            weeks=n_win, nonzero=n_nonzero,
+            window_start=win_start, window_end=win_end)
+    df_full = df_win
 
     # --- window + ALWAYS-reserved validation tail (Jerry / M1) ---
     # ONE structure, two fits:
@@ -641,10 +1028,17 @@ def run_slice(path: str, brand_sheet: str, channel: str,
     force = [c for c in dict.fromkeys(force) if c in specs_by_name]
     spec_names = [s.name for s in specs]
 
+    # Hill reference scales from TRAINING weeks only (everything before the
+    # reserved validation tail). If the reference came from the whole window,
+    # the saturation transform itself would have seen the holdout — a subtle
+    # leak that would flatter the out-of-sample number.
+    _train_rows = slice(0, max(len(df_full) - val_hold, 1))
+    sat_refs = saturation_refs_for(df_full, specs, rows=_train_rows)
+
     def _assemble(a, b):
         dfx = df_full.iloc[a:b].reset_index(drop=True)
-        return (dfx, assemble_matrix(dfx, specs), dfx[spec_names].copy(),
-                dfx[cfg.target].astype(float))
+        return (dfx, assemble_matrix(dfx, specs, sat_refs=sat_refs),
+                dfx[spec_names].copy(), dfx[cfg.target].astype(float))
 
     def _select(Xtr, ytr):
         """VIF prune + forward stepwise + dead-coef prune -> selected names."""
@@ -652,8 +1046,25 @@ def run_slice(path: str, brand_sheet: str, channel: str,
         Xz = Xz.loc[:, Xz.std() > 0]
         favail = [c for c in force if c in Xz.columns]
         vif_keep = prune_by_vif(Xz, threshold=cfg.vif_threshold, protect=favail)
-        selected = forward_stepwise(Xz[vif_keep], ytr, p_enter=cfg.p_enter,
-                                    start_with=favail) or vif_keep[:5]
+        fam_of = {n: s.family for n, s in specs_by_name.items()}
+        selected = forward_stepwise(
+            Xz[vif_keep], ytr, p_enter=cfg.p_enter, start_with=favail,
+            family_of=fam_of, max_per_family=cfg.max_per_family)
+        if not selected:
+            # nothing cleared p_enter — fall back to a few candidates so the
+            # slice still produces a model, but honour the caps here too,
+            # otherwise the fallback would quietly violate the limits the
+            # analyst just set.
+            selected, seen = [], {}
+            for c in vif_keep:
+                f = fam_of.get(c)
+                cap = (cfg.max_per_family or {}).get(f)
+                if cap and seen.get(f, 0) >= int(cap):
+                    continue
+                selected.append(c)
+                seen[f] = seen.get(f, 0) + 1
+                if len(selected) >= 5:
+                    break
         sd = Xtr[selected].std(ddof=0)
         for _ in range(len(selected)):
             f = constrained_fit(Xtr[selected], ytr, specs_by_name)
@@ -666,22 +1077,26 @@ def run_slice(path: str, brand_sheet: str, channel: str,
             selected = [c for c in selected if c not in dead]
         return selected
 
-    # REPORTED window (full history-length ending at the latest week)
-    df, X_all, X_raw, y = _assemble(max(n - mw, 0), n)
+    # REPORTED window = the fixed calendar window, in full. df_full was already
+    # clipped to [win_start, win_end], so this is every week in the window and
+    # NOTHING outside it — no stale pre-window history can reach the due-tos.
+    df, X_all, X_raw, y = _assemble(0, n)
 
-    # VALIDATION: SELECT on training (no tail leakage) + score the reserved tail
+    # VALIDATION: SELECT on training (no tail leakage) + score the reserved tail.
+    # Both fits now live inside the SAME fixed window (the tail is carved out of
+    # it rather than the window sliding back), so the validation model never
+    # reaches for data outside the period we said we were modeling.
     holdout_mape = np.nan
     pred_te = yte = np.array([])
     if val_hold > 0:
-        val_end = n - val_hold
-        vdf, vX, _, vy = _assemble(max(val_end - mw, 0), n)
-        sv = len(vdf) - val_hold
-        selected = _select(vX.iloc[:sv], vy.iloc[:sv])
-        vfit = constrained_fit(vX[selected].iloc[:sv], vy.iloc[:sv], specs_by_name)
+        sv = n - val_hold
+        selected = _select(X_all.iloc[:sv], y.iloc[:sv])
+        vfit = constrained_fit(X_all[selected].iloc[:sv], y.iloc[:sv],
+                               specs_by_name)
         Xte = np.column_stack([np.ones(val_hold),
-                               vX[selected].iloc[sv:].values])
+                               X_all[selected].iloc[sv:].values])
         pred_te = Xte @ vfit.coef.values
-        yte = vy.iloc[sv:].values
+        yte = y.iloc[sv:].values
         nz = yte != 0
         holdout_mape = float(np.mean(np.abs((yte[nz] - pred_te[nz]) / yte[nz]))) * 100 \
             if nz.any() else np.nan
@@ -718,7 +1133,278 @@ def run_slice(path: str, brand_sheet: str, channel: str,
         "pred_te": pred_te, "yte": yte, "sign_conflicts": sign_conflicts,
         "adstock_checks": adstock_checks, "val_hold": val_hold,
         "contrib_by_year": contrib_by_year, "avg_contrib": avg_contrib,
+        # the fixed window this model was built on, for captions/exports
+        "window_start": win_start, "window_end": win_end,
+        "n_weeks_window": n_win, "n_weeks_selling": n_nonzero,
+        "sat_refs": sat_refs,
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 8. MEDIA CURVE OPTIMIZATION  (Alex 2026-07-27, F2 + F3)
+#
+#   "The ad stock that you put in — 0.5. Does it always have to be 0.5? Can we
+#    create an optimization engine that will pick the best ad stock based on
+#    correlation with the data, predictive power in a regression? We can do the
+#    same thing with saturation. Is there a certain slope and midpoint that
+#    best fits the data? … If we want a fully automated system, that would be
+#    dope as hell."
+#
+# Search space per media variable: decay d (carry-over) × midpoint γ × slope s
+# (Hill saturation), including the option of NO saturation.
+#
+# ── The part that matters most: what it is scored on ──────────────────────
+# Tuning curve shapes is a search over a large space, so whatever set you
+# score on gets over-fitted — that is not a risk, it is a certainty. So the
+# window is split THREE ways, not two:
+#
+#     [ ─────────── train ─────────── | inner validation | OUTER HOLDOUT ]
+#                                        13 wks             13 wks
+#
+# The optimizer fits on `train` and scores candidates on `inner validation`.
+# The OUTER holdout is never touched during the search, so the holdout MAPE
+# the dashboard reports afterwards is still an honest out-of-sample number and
+# is directly comparable with a model that was never optimized. If the
+# optimizer had been scored on the reported holdout, every optimized model
+# would look better and none of them would be.
+#
+# Search strategy: coordinate descent — one variable at a time, others held at
+# their current values, a couple of passes. Full joint search over k media
+# variables is (grid)^k; coordinate descent is k×(grid) per pass and in
+# practice finds the same optimum for a near-separable problem like this.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Defaults chosen to span the behaviour Alex described without exploding the
+# search: decay 0 (no carry-over) → 0.8 (long TV-style tail); midpoint from
+# early saturation (20% of peak) to late (80%); slope <1 concave, >1 the
+# S-curve. `None` in the saturation grid = leave the variable linear, so the
+# optimizer can always decline to saturate.
+DECAY_GRID = (0.0, 0.2, 0.4, 0.6, 0.8)
+MIDPOINT_GRID = (0.2, 0.35, 0.5, 0.65, 0.8)
+SLOPE_GRID = (0.5, 1.0, 1.5, 2.5)
+
+
+def _fold_mape(X: pd.DataFrame, y: pd.Series, cols: list, specs_by_name: dict,
+               n_train: int, n_score: int) -> float:
+    """Fit on rows [0, n_train), score the next n_score rows."""
+    end = n_train + n_score
+    if not cols or end > len(X) or n_train < len(cols) + 2:
+        return np.inf
+    try:
+        f = constrained_fit(X[cols].iloc[:n_train], y.iloc[:n_train],
+                            specs_by_name)
+    except Exception:
+        return np.inf
+    Xte = np.column_stack([np.ones(n_score),
+                           X[cols].iloc[n_train:end].values])
+    pred = Xte @ f.coef.values
+    yte = y.iloc[n_train:end].values
+    nz = yte != 0
+    if not nz.any():
+        return np.inf
+    err = float(np.mean(np.abs((yte[nz] - pred[nz]) / yte[nz]))) * 100
+    return err if np.isfinite(err) else np.inf
+
+
+def _score_structure(X: pd.DataFrame, y: pd.Series, cols: list,
+                     specs_by_name: dict, folds: list) -> float:
+    """Mean MAPE across ROLLING-ORIGIN folds.
+
+    A single inner validation window turned out to be too easy to over-fit:
+    on Brand 1 × Channel 1 the search improved a lone 13-week inner window
+    from 11.2% to 9.7% while making the untouched outer holdout WORSE (19.6%
+    → 21.9%). It had tuned the curves to one particular quarter.
+
+    So candidates are scored on several expanding-window folds instead —
+    train on everything before a fold, score the fold, average. A curve shape
+    now has to help in several different periods to be adopted, which is what
+    "this decay is real" actually means. Structure is held fixed throughout so
+    the score reflects the curve shapes and nothing else.
+    """
+    scores = [_fold_mape(X, y, cols, specs_by_name, n_tr, n_sc)
+              for n_tr, n_sc in folds]
+    ok = [s for s in scores if np.isfinite(s)]
+    if not ok:
+        return np.inf
+    return float(np.mean(ok))
+
+
+def _fold_scores(X: pd.DataFrame, y: pd.Series, cols: list,
+                 specs_by_name: dict, folds: list) -> list:
+    return [_fold_mape(X, y, cols, specs_by_name, n_tr, n_sc)
+            for n_tr, n_sc in folds]
+
+
+def optimize_media_curves(df_window: pd.DataFrame, specs: list, target: str,
+                          selected: Optional[list] = None,
+                          inner_holdout: int = 13, outer_holdout: int = 13,
+                          n_folds: int = 3, passes: int = 2,
+                          decay_grid=DECAY_GRID, midpoint_grid=MIDPOINT_GRID,
+                          slope_grid=SLOPE_GRID,
+                          min_improvement: float = 0.5,
+                          progress=None) -> dict:
+    """Search adstock decay + Hill saturation per media variable.
+
+    Returns {"params": {var: {adstock_decay, sat_midpoint, sat_slope}},
+             "baseline_inner_mape", "optimized_inner_mape", "n_fits",
+             "per_variable": [...]}  — parameters only. The caller writes them
+    to the config and re-runs normally, so nothing here can quietly become a
+    second, divergent modeling path.
+
+    A variable's new curve is adopted only if it improves the inner-validation
+    MAPE by at least `min_improvement` percentage points; otherwise it keeps
+    what it had. Without that floor the search would happily trade a 0.01%
+    "gain" for an implausible curve shape.
+    """
+    n = len(df_window)
+    n_outer = min(outer_holdout, max(n // 6, 0))
+    n_avail = n - n_outer                     # optimizer's whole universe
+    n_inner = min(inner_holdout, max(n_avail // 6, 0))
+    # Rolling-origin folds inside the optimizer's universe: the LAST fold ends
+    # at n_avail, each earlier fold shifts back by one fold length.
+    folds = []
+    for i in range(max(n_folds, 1)):
+        end = n_avail - i * n_inner
+        n_tr = end - n_inner
+        if n_tr >= 15 and n_inner >= 4:
+            folds.append((n_tr, n_inner))
+    folds.reverse()
+    n_train = folds[-1][0] if folds else 0
+    if not folds:
+        return {"params": {}, "baseline_inner_mape": np.nan,
+                "optimized_inner_mape": np.nan, "n_fits": 0,
+                "per_variable": [],
+                "note": (f"window too short to optimize safely "
+                         f"({n} weeks: needs ≥15 training weeks and a ≥4-week "
+                         f"validation fold after reserving the outer holdout)")}
+
+    # everything the optimizer sees excludes the OUTER holdout entirely
+    df_opt = df_window.iloc[:n_avail].reset_index(drop=True)
+    y = df_opt[target].astype(float)
+
+    by_name = {s.name: s for s in specs}
+    media = [s.name for s in specs if s.adstock_decay is not None]
+    if selected:                      # optimize what is actually in the model
+        media = [m for m in media if m in selected]
+    if not media:
+        return {"params": {}, "baseline_inner_mape": np.nan,
+                "optimized_inner_mape": np.nan, "n_fits": 0,
+                "per_variable": [], "note": "no media variables in the model"}
+
+    cols = list(selected) if selected else [s.name for s in specs]
+    cols = [c for c in cols if c in by_name]
+
+    # current parameter state, seeded from the config
+    state = {m: {"adstock_decay": by_name[m].adstock_decay,
+                 "sat_midpoint": by_name[m].sat_midpoint,
+                 "sat_slope": by_name[m].sat_slope} for m in media}
+
+    def build(state_):
+        """Design matrix under a candidate parameter state, with Hill
+        references taken from TRAINING rows only."""
+        trial = []
+        for s in specs:
+            if s.name in state_:
+                st = state_[s.name]
+                trial.append(FeatureSpec(
+                    name=s.name, family=s.family, sign=s.sign,
+                    adstock_decay=st["adstock_decay"],
+                    coef_lower=s.coef_lower, coef_upper=s.coef_upper,
+                    role=s.role, scale=s.scale,
+                    sat_midpoint=st["sat_midpoint"],
+                    sat_slope=st["sat_slope"]))
+            else:
+                trial.append(s)
+        # references from the FIRST fold's training rows — the earliest and
+        # therefore most conservative slice of history any fold trains on
+        refs = saturation_refs_for(df_opt, trial, rows=slice(0, folds[0][0]))
+        return (assemble_matrix(df_opt, trial, sat_refs=refs),
+                {t.name: t for t in trial})
+
+    X0, sbn0 = build(state)
+    base_folds = _fold_scores(X0, y, cols, sbn0, folds)
+    base_score = float(np.mean([v for v in base_folds if np.isfinite(v)])
+                       or np.inf)
+    best_score, best_folds, n_fits = base_score, base_folds, 1
+
+    candidates = [(d, None, None) for d in decay_grid] + \
+                 [(d, m, sl) for d in decay_grid
+                  for m in midpoint_grid for sl in slope_grid]
+
+    for p in range(passes):
+        improved_this_pass = False
+        for var in media:
+            keep = dict(state[var])
+            local_best, local_score, local_folds = keep, best_score, best_folds
+            for (d, m, sl) in candidates:
+                trial_state = dict(state)
+                trial_state[var] = {"adstock_decay": d, "sat_midpoint": m,
+                                    "sat_slope": sl}
+                Xc, sbnc = build(trial_state)
+                fs = _fold_scores(Xc, y, cols, sbnc, folds)
+                n_fits += 1
+                finite = [v for v in fs if np.isfinite(v)]
+                if not finite:
+                    continue
+                sc = float(np.mean(finite))
+                # STRICT DOMINANCE: a curve must not be worse in ANY fold.
+                # Averaging alone let a shape that happened to suit one
+                # quarter win while degrading another — precisely the
+                # over-fit this whole three-way split exists to prevent.
+                if any(f > b_ + 1e-9 for f, b_ in zip(fs, best_folds)
+                       if np.isfinite(f) and np.isfinite(b_)):
+                    continue
+                if sc < local_score - 1e-12:
+                    local_best, local_score, local_folds = \
+                        trial_state[var], sc, fs
+            # adopt only a materially better curve
+            if local_score < best_score - min_improvement:
+                state[var] = local_best
+                best_score, best_folds = local_score, local_folds
+                improved_this_pass = True
+            if progress:
+                progress(f"pass {p+1}: {var} → "
+                         f"decay {state[var]['adstock_decay']}, "
+                         f"sat {state[var]['sat_midpoint']}/"
+                         f"{state[var]['sat_slope']} "
+                         f"(inner MAPE {best_score:.2f}%)")
+        if not improved_this_pass:
+            break                     # converged — further passes can't help
+
+    per_var = [{"variable": v,
+                "adstock_decay": state[v]["adstock_decay"],
+                "sat_midpoint": state[v]["sat_midpoint"],
+                "sat_slope": state[v]["sat_slope"],
+                "changed": state[v] != {"adstock_decay": by_name[v].adstock_decay,
+                                        "sat_midpoint": by_name[v].sat_midpoint,
+                                        "sat_slope": by_name[v].sat_slope}}
+               for v in media]
+    return {"params": state, "baseline_inner_mape": base_score,
+            "optimized_inner_mape": best_score,
+            "baseline_fold_mapes": [float(v) for v in base_folds],
+            "optimized_fold_mapes": [float(v) for v in best_folds],
+            "n_fits": n_fits,
+            "per_variable": per_var, "n_train": n_train, "n_inner": n_inner,
+            "n_outer": n_outer, "folds": folds}
+
+
+def response_curve(spec: FeatureSpec, coef: float, ref: float,
+                   x_max: Optional[float] = None, points: int = 60) -> dict:
+    """Points for drawing one media variable's response curve: modeled volume
+    against (adstocked, scaled) execution. Linear variables give a straight
+    line; saturated ones give the Hill curve, where the flattening IS the
+    diminishing return."""
+    hi = float(x_max if x_max is not None else (ref or 1.0)) * 1.25 or 1.0
+    xs = np.linspace(0.0, hi, points)
+    if spec.sat_midpoint is not None and spec.sat_slope is not None:
+        ys = coef * hill(xs, spec.sat_midpoint, spec.sat_slope, ref=ref)
+        half = spec.sat_midpoint * (ref or 0.0)
+    else:
+        ys = coef * xs
+        half = None
+    return {"x": [float(v) for v in xs], "y": [float(v) for v in ys],
+            "half_saturation": (None if half is None else float(half)),
+            "saturated": half is not None}
 
 
 if __name__ == "__main__":

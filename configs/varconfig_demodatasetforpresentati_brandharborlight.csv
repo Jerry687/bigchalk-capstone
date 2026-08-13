@@ -1,0 +1,115 @@
+variable,family,sign,adstock_decay,coef_lower,coef_upper,role,scale
+Price per Volume,Price,negative,,,,auto,1.0
+Total Category Price Per Volume,Category Price,positive,,,,auto,1.0
+Category P Price Per Volume,Category Price,positive,,,,auto,1.0
+ACV Weighted Distribution,Distribution,positive,,,,force,1.0
+Avg Weekly Items per Store Selling,Distribution,positive,,,,auto,1.0
+Total Points of Distribution,Distribution,positive,,,,auto,1.0
+Weighted Weeks Price Reductions Only,Trade,positive,,,,auto,1.0
+Weighted Weeks Feature Only,Trade,positive,,,,auto,1.0
+Weighted Weeks Display Only,Trade,positive,,,,auto,1.0
+Weighted Weeks Special Pack Only,Trade,positive,,,,auto,1.0
+Weighted Weeks Feature and Display,Trade,positive,,,,auto,1.0
+Brand Harborlight_Social_Feed_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Search_Spend,Media,positive,0.2,,,auto,1.0
+Brand Harborlight_Short_Video_Spend,Media,positive,0.7,,,auto,1.0
+Brand Harborlight_Retail_Media_A_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Retail_Media_B_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Marketplace_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Delivery_App_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Grocery_Network_A_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Grocery_Network_B_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Grocery_Network_C_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Onsite_Display_Spend,Media,positive,0.5,,,auto,1.0
+Brand Harborlight_Connected_TV_Spend,Media,positive,0.7,,,auto,1.0
+Seasonality_Index,Seasonality,positive,,,,auto,1.0
+Trend,Trend,unconstrained,,,,exclude,1.0
+Unemployment_Rate,Macro,unconstrained,,,,auto,1.0
+Median_CPI,Macro,unconstrained,,,,auto,1.0
+CFNAI,Macro,unconstrained,,,,auto,1.0
+Gas_Price,Macro,unconstrained,,,,auto,1.0
+UMCSENT,Macro,unconstrained,,,,auto,1.0
+T5YIE,Macro,unconstrained,,,,auto,1.0
+PSAVERT,Macro,unconstrained,,,,auto,1.0
+PCEC96,Macro,unconstrained,,,,auto,1.0
+SNAP_Participants,Macro,unconstrained,,,,auto,1000.0
+Fedfunds,Macro,unconstrained,,,,auto,1.0
+Unempclaims,Macro,unconstrained,,,,auto,1.0
+Retail_Sales,Macro,unconstrained,,,,auto,1.0
+_C_Rival Alder__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Alder__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Alder__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Alder__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Alder__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Alder__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Alder__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Bramble__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Clover__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Dogwood__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Elmridge__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Fernbank__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Gorsehill__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Hawthorn__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Ivyfield__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Larkspur__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__ACV Weighted Distribution,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__Weighted Weeks Feature Only,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__Weighted Weeks Display Only,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto,1.0
+_C_Rival Mulberry__Weighted Weeks Feature and Display,Competitive,negative,,,,auto,1.0

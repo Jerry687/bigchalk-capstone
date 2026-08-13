@@ -1,8 +1,9 @@
 ,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,-531.2494517318245,(intercept),(intercept),,,-531.2494517318245
-ACV Weighted Distribution,278.54683577571836,Distribution,positive,yes,29.70255379267515,1421.8975356413105
-Price per Volume,-109.99458031871848,Price,negative,,-9.304255641032515,-788.8330793382706
-Seasonality_Index,759.1700687150326,Seasonality,positive,,10.23671768825228,759.1700687150327
-Avg Weekly Items per Store Selling,251.65686389322755,Distribution,positive,,2.5936830574273397,448.8684983857281
-_C_COMPETITOR4__Weighted Weeks Price Reductions Only,-79.4080077042344,Competitive,negative,,-2.0820322768633894,-33.84908873639582
-Median_CPI,-13.337549759196804,Macro,unconstrained,,-1.5067992458980457,-50.25420117711757
+const,-636.7714113356532,(intercept),(intercept),,,-636.7714113356532
+ACV Weighted Distribution,267.0019996410579,Distribution,positive,yes,29.193317161844487,1280.4427111535051
+Price per Volume,-104.14253848836815,Price,negative,,-9.323344806715058,-739.1043498194472
+Seasonality_Index,779.0608729322807,Seasonality,positive,,10.76295213815796,779.0608729322807
+Avg Weekly Items per Store Selling,304.45273656965276,Distribution,positive,,2.9568463775044345,547.7093033909515
+Median_CPI,-9.368443359633968,Macro,unconstrained,,-1.4429548912607,-32.001858238573796
+_C_COMPETITOR4__Weighted Weeks Price Reductions Only,-97.48711088596914,Competitive,negative,,-2.76290502708983,-45.640703038880176
+Weighted Weeks Display Only,5.9582853497960275e-24,Trade,positive,,-0.42763627529475523,2.306278410439167e-26

@@ -48,6 +48,10 @@ BASE_CFG = dict(
     holdout_weeks=None,          # auto: always-reserved validation tail (<=13w)
     p_enter=0.05,
     default_media_decay=0.5,
+    # Per-family selection caps (Alex 2026-07-27: "only two to three trade,
+    # but all media"). Empty = no caps = the historical behaviour; set e.g.
+    # {"Trade": 3, "Competitive": 2, "Macro": 2} to try a tighter model.
+    max_per_family={},
     # NOTE: no force_include here. ACV force-include lives in the config file's
     # ROLE (the generated default forces it), so it's authoritative and the
     # analyst can override it to `auto`. Passing force_include on top would let
@@ -71,8 +75,18 @@ def main():
         lo, hi = int(sys.argv[1]), int(sys.argv[2])
         brands = [b for b in brands if lo <= int(b.split()[-1]) <= hi]
         part = f"_part{lo}_{hi}"
-    rows, failures = [], []
+    rows, failures, skipped = [], [], []
     t0 = time.time()
+
+    # ONE fixed calendar window for the whole batch: the latest week in the
+    # DATASET, not in each slice (Alex 2026-07-27). Every model below covers
+    # the identical date range, so slices are comparable and a delisted slice
+    # cannot smuggle 2023 history into the exports.
+    anchor = cp.dataset_anchor_week(DATA)
+    win_start, win_end = cp.resolve_window(anchor, BASE_CFG["model_weeks"])
+    print(f"Modeling window: {win_start:%Y-%m-%d} .. {win_end:%Y-%m-%d} "
+          f"({BASE_CFG['model_weeks']} wks, anchored to the dataset's latest "
+          f"week)", flush=True)
 
     for brand in brands:
         sheet = pd.read_excel(xl, sheet_name=brand)
@@ -93,7 +107,8 @@ def main():
                 cfg_file = (cp.resolve_config_path(DATA, brand, channel)
                             or cp.load_or_create_default_config(
                                 DATA, brand, df=sheet))
-                cfg = cp.ModelConfig(**BASE_CFG, variable_config=cfg_file)
+                cfg = cp.ModelConfig(**BASE_CFG, variable_config=cfg_file,
+                                     window_end=anchor)
                 r = cp.run_slice(DATA, brand, channel, config=cfg, df=sheet)
                 fit, sel = r["fit"], r["selected"]
 
@@ -104,7 +119,10 @@ def main():
 
                 rows.append({
                     "brand": brand, "channel": channel,
+                    "window_start": f"{r['window_start']:%Y-%m-%d}",
+                    "window_end": f"{r['window_end']:%Y-%m-%d}",
                     "n_weeks_reported": len(r["df"]),
+                    "n_weeks_selling": r["n_weeks_selling"],
                     "n_weeks_holdout": len(r["yte"]),
                     "n_selected": len(sel), "n_forced": len(r["forced"]),
                     "R2": round(fit.r2, 4), "adj_R2": round(fit.adj_r2, 4),
@@ -131,6 +149,17 @@ def main():
                 r["contrib_by_year"].to_csv(f"{base}_contrib_by_year.csv")
                 print(f"[{time.time()-t0:6.0f}s] {tag}: R2={fit.r2:.2f} "
                       f"holdout MAPE={r['holdout_mape']:.0f}%", flush=True)
+            # Not enough data INSIDE the fixed window -> deliberately NOT
+            # modeled. This is an expected outcome, not a crash: it is how a
+            # delisted / barely-distributed slice stops producing a phantom
+            # model. Reported separately so nothing disappears silently.
+            except cp.InsufficientWindowData as e:
+                skipped.append({"brand": brand, "channel": channel,
+                                "weeks_in_window": e.weeks,
+                                "selling_weeks_in_window": e.nonzero,
+                                "reason": str(e)})
+                print(f"[{time.time()-t0:6.0f}s] {tag}: SKIPPED - {e}",
+                      flush=True)
             except Exception as e:
                 failures.append({"brand": brand, "channel": channel, "error": str(e)})
                 print(f"[{time.time()-t0:6.0f}s] {tag}: FAILED - {e}", flush=True)
@@ -140,8 +169,12 @@ def main():
     summary.to_csv(f"{OUT}/all_models_summary{part}.csv", index=False)
     if failures:
         pd.DataFrame(failures).to_csv(f"{OUT}/all_models_failures{part}.csv", index=False)
+    if skipped:
+        pd.DataFrame(skipped).to_csv(f"{OUT}/all_models_skipped{part}.csv",
+                                     index=False)
 
-    print(f"\nDone: {len(rows)} models, {len(failures)} failures "
+    print(f"\nDone: {len(rows)} models, {len(skipped)} skipped "
+          f"(insufficient data in window), {len(failures)} failures "
           f"in {time.time()-t0:.0f}s")
     print(f"median R2={summary.R2.median():.2f}  "
           f"median holdout MAPE={summary.MAPE_holdout_pct.median():.1f}%")

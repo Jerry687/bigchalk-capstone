@@ -1,0 +1,630 @@
+\documentclass[11pt]{article}
+
+\usepackage[letterpaper,margin=0.72in,headheight=24pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{lastpage}
+\usepackage{listings}
+\usepackage{titlesec}
+
+\definecolor{navy}{HTML}{17365D}
+\definecolor{blue}{HTML}{2F6690}
+\definecolor{lightblue}{HTML}{EAF2F8}
+\definecolor{green}{HTML}{157347}
+\definecolor{amber}{HTML}{9A6700}
+\definecolor{red}{HTML}{B42318}
+\definecolor{gray}{HTML}{667085}
+\definecolor{lightgray}{HTML}{F2F4F7}
+\definecolor{rulegray}{HTML}{D0D5DD}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=navy,
+  urlcolor=blue,
+  citecolor=navy,
+  pdftitle={Alex Dashboard Edits - Comprehensive Test and Verification Report},
+  pdfauthor={Big Chalk Capstone Team}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textcolor{navy}{\small Alex Dashboard Edits}}
+\rhead{\textcolor{gray}{\small Test and Verification Report}}
+\cfoot{\textcolor{gray}{\small Page \thepage\ of \pageref{LastPage}}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{rulegray}\leaders\hrule height \headrulewidth\hfill}}
+
+\titleformat{\section}{\Large\bfseries\color{navy}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{blue}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.2em}{0.55em}
+\titlespacing*{\subsection}{0pt}{1.0em}{0.4em}
+
+\setlist[itemize]{leftmargin=1.4em,itemsep=0.25em,topsep=0.3em}
+\setlist[enumerate]{leftmargin=1.6em,itemsep=0.25em,topsep=0.3em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlength{\LTpre}{0.3em}
+\setlength{\LTpost}{0.8em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\Pass}{\textcolor{green}{\textbf{PASS}}}
+\newcommand{\PassFix}{\textcolor{green}{\textbf{PASS after fix}}}
+\newcommand{\Open}{\textcolor{amber}{\textbf{OUTSIDE SCOPE}}}
+\newcommand{\IR}{\textcolor{blue}{\textbf{I}}}
+\newcommand{\RR}{\textcolor{navy}{\textbf{R}}}
+\newcommand{\FR}{\textcolor{green}{\textbf{F}}}
+\newcounter{testcase}
+\newcommand{\TC}[4]{%
+  \refstepcounter{testcase}%
+  \texttt{#1} & #2 & #3 & #4\\[2pt]\hline
+}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{lightgray},
+  frame=single,
+  rulecolor=\color{rulegray},
+  breaklines=true,
+  columns=fullflexible,
+  showstringspaces=false
+}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \pagecolor{lightblue}
+  \color{navy}
+  \vspace*{0.65in}
+  {\Huge\bfseries Alex Dashboard Edits\par}
+  \vspace{0.18in}
+  {\LARGE Comprehensive Test and Verification Report\par}
+  \vspace{0.28in}
+  {\large Groups 1--9, configuration tiering, exports, modeling engine, and time-period analysis\par}
+
+  \vfill
+  \colorbox{navy}{%
+    \parbox{0.88\textwidth}{%
+      \color{white}
+      \vspace{0.16in}
+      \textbf{Final assessment:} All items from Alex's annotated PowerPoint have passed the final verification state documented in this report.\\[0.08in]
+      \textbf{Current dashboard wiring:} 66 components / 27 callbacks.\\
+      \textbf{Current sponsor-estimator check:} PASS; coefficient gap approximately $1.7\times10^{-8}$ of the largest coefficient scale.
+      \vspace{0.16in}
+    }}
+
+  \vfill
+  \begin{tabular}{@{}ll@{}}
+    \textbf{Prepared for:} & Big Chalk Capstone Team\\
+    \textbf{Prepared by:} & Boqi Niu with Codex verification support\\
+    \textbf{Report date:} & July 23, 2026\\
+    \textbf{Repository:} & \path{C:\Users\BoqiNiu\Claude\Projects\Capstone}\\
+    \textbf{Primary dataset:} & \path{Anonymized Data for Project.xlsx}\\
+  \end{tabular}
+  \vspace{0.45in}
+\end{titlepage}
+\nopagecolor
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section{Executive Summary}
+
+This report consolidates the full test history from the implementation and review session for Alex's dashboard feedback. It records the initial positive-path checks, every material defect uncovered during review, the corresponding corrective change, and the successful retest. The catalog contains \textbf{184 named test cases}; many cases contain multiple assertions.
+
+\textbf{Final result.} The dashboard changes in Groups 1--9, including the two-tier variable configuration model and CLI unification, passed the final state described here. The final current-state smoke test produced:
+
+\begin{itemize}
+  \item Dashboard registration: \textbf{66 components / 27 callbacks}.
+  \item Python compilation: all five modified source files compiled successfully.
+  \item Sponsor estimator equivalence: \textbf{PASS}, with a scale-normalized coefficient gap of approximately $1.69\times10^{-8}$ in the final rerun.
+  \item Model-window regression: 52-, 104-, and 156-week runs completed successfully.
+  \item Three-year robustness: the 156-week run produced three model-year periods.
+  \item Configuration hygiene: no config diffs and no upload temp, backup, or test override artifacts remained after verification.
+\end{itemize}
+
+\textbf{Important scope note.} The runtime/scaling benchmark requested verbally in the July meeting (1 model, 10 models, full set, and doubled run) is a separate deliverable and is not claimed as completed by this report. The screenshots had already been sent to Alex and are also outside this report's test scope.
+
+\section{Evidence Model and Confidence}
+
+Each test is tagged with one or more evidence classes:
+
+\begin{center}
+\begin{tabular}{L{1.0cm}L{4.3cm}L{10.2cm}}
+\toprule
+\textbf{Tag} & \textbf{Evidence class} & \textbf{Meaning}\\
+\midrule
+\IR & Implementation evidence & A test reported during implementation, including targeted fault injection, temporary backup/restore, callback inspection, or behavioral assertions.\\
+\RR & Independent review evidence & A test independently repeated during this review conversation, generally read-only against the working tree and current dataset.\\
+\FR & Final regression evidence & A current-state rerun after all fixes, including compilation, callback registration, selected behavioral checks, equivalence, and workspace hygiene.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The report deliberately distinguishes reported implementation tests from independently reproduced tests. A test marked only \IR was not falsely represented as independently rerun. Tests marked \RR or \FR were directly reproduced during the review.
+
+\section{System Under Test}
+
+\subsection{Modified source and tracking artifacts}
+
+\begin{itemize}
+  \item \path{code/dashboard.py}
+  \item \path{code/capstone_pipeline.py}
+  \item \path{code/run_all.py}
+  \item \path{code/run_brand1_channel1.py}
+  \item \path{code/reference_alex_curvefit.py}
+  \item \path{docs/Alex_Dashboard_Edits_Plan.md} (tracker document, not a source file)
+\end{itemize}
+
+\subsection{Final regression environment}
+
+\begin{center}
+\begin{tabular}{L{4.2cm}L{4.1cm}L{6.6cm}}
+\toprule
+\textbf{Component} & \textbf{Version/value} & \textbf{Notes}\\
+\midrule
+Operating system & Windows & Local project workspace\\
+Python & 3.13.14 & Final regression interpreter\\
+NumPy & 2.5.1 & Numerical arrays\\
+pandas & 3.0.3 & Workbook/config processing\\
+SciPy & 1.18.0 & Constrained model fitting\\
+Dash & 4.4.0 & Dashboard callbacks and layout\\
+Plotly & 6.8.0 & Figures and chart traces\\
+Dataset size & 13,530,148 bytes & \path{Anonymized Data for Project.xlsx}\\
+Dataset SHA-256 & \texttt{C4303D04...D7B31A0} & Full hash retained in the session evidence\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Requirement Traceability}
+
+\begin{longtable}{L{1.4cm}L{5.0cm}L{6.6cm}L{2.4cm}}
+\toprule
+\textbf{Group} & \textbf{Requirement area} & \textbf{Primary verification} & \textbf{Final state}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Group} & \textbf{Requirement area} & \textbf{Primary verification} & \textbf{Final state}\\
+\midrule
+\endhead
+1 & Run-model restructure & Button placement, tab redirect, Model Runs rename, callback registration & \Pass\\
+2 & Batch grade labels and window help & Threshold labels, cell fills, no-holdout state, tooltip content & \Pass\\
+3 & k/M formatting and chart labels & Formatter boundary cases and both contribution figures & \Pass\\
+4 & Diagnostics VIF & Final selected design matrix, forced variables, high/infinite display & \Pass\\
+5 & Variables context & Coefficient/due-to context, period toggle, slice gating, edit preservation & \Pass\\
+5.5 & Two-tier config & Default/override precedence, scoped writes, races, CLI parity, shared lock & \Pass\\
+6 & Variable template and Export tab & Round-trip, validation, transaction rollback, three-sheet workbook & \Pass\\
+7 & Definitions and Methods & Code-aligned formulas, thresholds, method wording, navigation & \Pass\\
+8 & Time selection & Built-in periods, mapping upload, stale safety, period comparison, A-vs-A guard & \Pass\\
+9 & Final full-window model & Reserved validation tail, same selected structure, full-window refit, 3-year run & \Pass\\
+\bottomrule
+\end{longtable}
+
+\section{Detailed Test Catalog}
+
+\subsection{A. Requirements, Baseline, and Structural UI}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{REQ-01}{Extract all requested edits}{Compared the six-slide annotated PowerPoint against the living tracker and code areas.}{All callouts assigned to Groups 1--9. \Pass\ \IR}
+\TC{REQ-02}{Resolve superseded requirements}{Confirmed Alex's coefficient plus due-to specification superseded the temporary ``was to now'' design.}{Temporary comparison removed from final scope. \Pass\ \IR}
+\TC{REQ-03}{Preserve source distinction}{Separated PowerPoint requirements, July meeting statements, and internal team decisions.}{VIF warning source and grade-threshold ownership recorded accurately. \Pass\ \IR}
+\TC{REQ-04}{Check tracker completeness}{Cross-checked every tab section: Modeling, Diagnostics, Variables, Contributions, Batch, Extras, Export.}{No PowerPoint callout left untracked. \Pass\ \IR}
+\TC{REQ-05}{Check final tracker state}{Reviewed final Group 8 entries after E3/E4 completion.}{C1, E3, E4 and Group 8 marked complete. \Pass\ \RR}
+\TC{REQ-06}{Protect unrelated workspace data}{Repeatedly inspected Git/config state after tests and avoided reverting the pre-existing batch summary change.}{No unintended source/config reversion. \Pass\ \IR\ \RR}
+\TC{UI-01}{Remove global Run button}{Inspected layout placement after restructure.}{Diagnostics and Contributions no longer expose a global Run command. \Pass\ \IR}
+\TC{UI-02}{Keep Run in authorized screens}{Checked Variables and Model Runs layouts.}{Run is present only where tuning or batch execution is intended. \Pass\ \IR}
+\TC{UI-03}{Place batch controls together}{Checked Model Runs action layout.}{Run model and Run all combinations are adjacent. \Pass\ \IR}
+\TC{UI-04}{Redirect after Run}{Triggered the store-driven tab transition for the same slice.}{Run redirects to Diagnostics without changing slice context. \Pass\ \IR}
+\TC{UI-05}{Rename Batch navigation}{Inspected the left navigation label.}{Navigation displays Model Runs. \Pass\ \IR}
+\TC{UI-06}{Validate tab renderer}{Registered all screens and switched tabs through the central store-driven renderer.}{No duplicate or missing screen renderer. \Pass\ \IR}
+\TC{UI-07}{Register app wiring after Group 1}{Imported the app and validated IDs/callback targets.}{Initial restructure registered cleanly. \Pass\ \IR}
+\TC{UI-08}{Model grade labels}{Exercised holdout values at good, moderate, and bad boundaries.}{Good, Moderate, and Bad labels matched configured thresholds. \Pass\ \IR}
+\TC{UI-09}{No-holdout label}{Passed a missing/NaN holdout metric to the grade helper.}{Neutral No holdout state returned. \Pass\ \IR}
+\TC{UI-10}{Grade cell fills}{Inspected Dash conditional styles for green, amber, red, and neutral states.}{Whole grade cell receives the intended fill and readable text. \Pass\ \IR}
+\TC{UI-11}{Window tooltip}{Rendered the WINDOW picker help after model-method revisions.}{Tooltip explains model window, reserved validation tail, and due-to periods. \Pass\ \IR}
+\TC{UI-12}{Shared k/M formatter}{Checked representative values 1,200,000; 550,000; and 10,675.}{Outputs followed 1.2m, 550k, and 10.68k style. \Pass\ \IR}
+\TC{UI-13}{Totals chart labels}{Inspected generated Plotly bars.}{Due-to totals chart includes formatted data labels. \Pass\ \IR}
+\TC{UI-14}{Average chart labels}{Inspected generated Plotly bars.}{Average weekly due-to chart includes formatted data labels. \Pass\ \IR}
+\TC{UI-15}{Current final callback graph}{Ran \code{\_validate\_wiring()} after every final fix.}{Final result: 66 components / 27 callbacks. \Pass\ \FR}
+\bottomrule
+\end{longtable}
+
+\subsection{B. Diagnostics and Variables Context}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{VAR-01}{Expose final-model VIF}{Traced \code{fit.vif} to the final \code{X[selected]} design matrix.}{VIF values correspond to variables actually in the model. \Pass\ \IR}
+\TC{VAR-02}{Include forced variables in VIF}{Traced forced variables through selection seeding and no-prune behavior.}{Forced variables remain in the final VIF set. \Pass\ \IR}
+\TC{VAR-03}{Render extreme VIF safely}{Injected/inspected high and infinite VIF presentation cases.}{High values warn without blocking; extreme/infinite values render explicitly. \Pass\ \IR}
+\TC{VAR-04}{Display coefficient context}{Ran a slice and loaded Variables context.}{Current coefficient is shown per variable. \Pass\ \IR}
+\TC{VAR-05}{Display period due-to context}{Inspected Y1, Y2, and Total values from the last-run store.}{Due-to values match stored model contributions. \Pass\ \IR}
+\TC{VAR-06}{Generalize to three model years}{Ran a 156-week slice and inspected context periods.}{Y1/Y2/Y3/Total options appear dynamically. \Pass\ \IR\ \FR}
+\TC{VAR-07}{Gate context by product}{Switched the selected product after a run.}{Context blanks until the new product is run. \Pass\ \IR}
+\TC{VAR-08}{Gate context by channel}{Switched to another channel with the same product.}{Same-channel showed nine variables; other-channel showed zero context rows. \Pass\ \IR}
+\TC{VAR-09}{Gate context by target}{Switched target without rerunning.}{Context blanks; edits remain available. \Pass\ \IR}
+\TC{VAR-10}{Preserve editor state when context blanks}{Changed selection after editing the config table.}{Context columns clear without discarding editor rows. \Pass\ \IR}
+\TC{VAR-11}{Auto-persist Variables Run}{Changed adstock from 0.5 to 0.91 and clicked Run without Save.}{Scoped config was written before fitting and the change was used. \PassFix\ \IR}
+\TC{VAR-12}{Keep batch run from overwriting editor}{Executed the batch single-run path while editor data existed.}{Batch path did not persist editor rows. \Pass\ \IR}
+\TC{VAR-13}{Reject invalid equal bounds}{Set lower bound equal to upper bound on Variables Run.}{Run aborted visibly; old config was not silently used. \PassFix\ \IR\ \RR}
+\TC{VAR-14}{Hide excluded rows safely}{Enabled the native excluded-row filter and then saved.}{Display filtering did not drop excluded rows from saved data. \Pass\ \IR}
+\TC{VAR-15}{Remove superseded columns}{Inspected the final Variables schema.}{Temporary was-to-now columns were removed. \Pass\ \IR}
+\bottomrule
+\end{longtable}
+
+\subsection{C. Two-Tier Configuration, Callback Ordering, and CLI Consistency}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{CFG-01}{Default config resolution}{Resolved a slice with no channel override.}{Product default path selected. \Pass\ \IR}
+\TC{CFG-02}{Override precedence}{Created a channel override and resolved the same slice.}{Override selected ahead of default. \Pass\ \IR}
+\TC{CFG-03}{Default filename convention}{Generated the default path for dataset/product.}{Path follows the documented dataset/product naming pattern. \Pass\ \IR}
+\TC{CFG-04}{Override filename convention}{Generated a channel-specific path.}{Path adds the normalized \code{\_\_ch\_<channel>} suffix. \Pass\ \IR}
+\TC{CFG-05}{Channel save isolation}{Saved a channel override while hashing the default.}{Override created; default remained byte-for-byte unchanged. \Pass\ \IR}
+\TC{CFG-06}{Editor scope status}{Loaded default, inherited channel, and existing override states.}{Status line correctly distinguishes all three. \Pass\ \IR}
+\TC{CFG-07}{Scoped Variables Run}{Ran from default and channel scopes.}{Each run used the exact file being edited (WYSIWYG). \Pass\ \IR}
+\TC{CFG-08}{Batch override semantics}{Ran batch resolution with an existing override.}{Batch used override-wins behavior. \Pass\ \IR}
+\TC{CFG-09}{Scoped regenerate}{Regenerated in channel scope and hashed the default.}{Only the override was regenerated. \PassFix\ \IR}
+\TC{CFG-10}{Reset existing override}{Clicked Reset to default with an existing channel file.}{Override deleted; resolution fell back to default. \PassFix\ \IR}
+\TC{CFG-11}{Reset absent override}{Clicked Reset when no override existed.}{No destructive action or false revision bump occurred. \Pass\ \IR}
+\TC{CFG-12}{Prevent stale channel scope}{Removed/cleared channel while channel scope was selected.}{Scope forced back to Product default. \PassFix\ \IR}
+\TC{CFG-13}{Write-before-read ordering}{Inspected callbacks after \code{config\_rev} refactor.}{Readers depend on the post-write signal, not raw button clicks. \PassFix\ \IR}
+\TC{CFG-14}{Save revision signal}{Performed a successful Save and an invalid Save.}{Revision bumps only after the successful write. \Pass\ \IR}
+\TC{CFG-15}{Regenerate revision signal}{Performed a scoped regeneration.}{Revision bumps only after the file update. \Pass\ \IR}
+\TC{CFG-16}{Reset revision signal}{Deleted an override and repeated the no-op reset.}{Real delete bumps; no-op returns \code{no\_update}. \Pass\ \IR}
+\TC{CFG-17}{Variables Run revision signal}{Persisted config and then simulated model failure.}{Revision still bumped after persist, refreshing status despite fit failure. \PassFix\ \IR}
+\TC{CFG-18}{Invalid Variables Run revision}{Passed invalid bounds through Variables Run.}{No file write and no phantom revision bump. \Pass\ \IR}
+\TC{CFG-19}{Shared resolver in pipeline}{Compared dashboard, batch, and CLI path results.}{All delegated to the same pipeline resolver. \PassFix\ \IR}
+\TC{CFG-20}{Batch resolves per channel}{Inspected and executed \code{run\_all.py} resolution loop.}{Each product-channel slice resolves independently. \Pass\ \IR}
+\TC{CFG-21}{Single-slice runner parity}{Ran/inspected \code{run\_brand1\_channel1.py}.}{Tiered config is preferred; no legacy root fallback remains. \PassFix\ \IR}
+\TC{CFG-22}{Config role is ACV authority}{Set ACV role to auto and force in separate CLI-style runs.}{Auto was not forced; force was included. \PassFix\ \IR}
+\TC{CFG-23}{Remove hidden CLI forcing}{Inspected \code{run\_all.py} base config.}{No unconditional ACV \code{force\_include} remains. \Pass\ \IR}
+\TC{CFG-24}{Single default-creation entry}{Deleted/restored a default under backup and reloaded through dashboard.}{Dashboard and CLI both recreate through the shared pipeline helper. \PassFix\ \IR}
+\TC{CFG-25}{Lazy workbook read}{Called default loading with an existing config.}{Excel was not read on the common existing-file path. \PassFix\ \IR}
+\TC{CFG-26}{Unified mutation lock identity}{Compared lock objects across pipeline and dashboard.}{Default creation, save/run, regenerate, reset, and upload share one RLock. \PassFix\ \IR}
+\TC{CFG-27}{Concurrent in-process writes}{Ran two channel uploads in separate threads.}{Both completed without corruption or temp artifacts. \Pass\ \IR}
+\TC{CFG-28}{Multi-process limitation disclosure}{Reviewed lock scope and documentation.}{Process-local limitation is stated; OS locking is not overclaimed. \Pass\ \IR}
+\bottomrule
+\end{longtable}
+
+\subsection{D. Variable Template Validation and Transactional Writes}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{TPL-01}{Canonical template schema}{Downloaded and inspected the workbook columns.}{Nine canonical fields matched the documented order. \Pass\ \IR}
+\TC{TPL-02}{Excel download serialization}{Decoded the Dash download payload and opened it as XLSX.}{Workbook was valid and editable. \Pass\ \IR}
+\TC{TPL-03}{CSV upload parsing}{Uploaded a valid CSV template.}{Rows parsed and entered the same validation path. \Pass\ \IR}
+\TC{TPL-04}{XLSX upload parsing}{Uploaded a valid Excel template.}{Rows parsed and entered the same validation path. \Pass\ \IR}
+\TC{TPL-05}{Default routing}{Uploaded a group with \code{channel=ALL}.}{Product default targeted. \Pass\ \IR}
+\TC{TPL-06}{Override routing}{Uploaded a group with a specific channel.}{Channel override targeted. \Pass\ \IR}
+\TC{TPL-07}{Unlisted means excluded}{Uploaded three listed variables for a 79-variable config.}{Remaining 76 variables became excluded. \Pass\ \IR}
+\TC{TPL-08}{Preserve listed edits}{Changed bounds/role/adstock in listed rows.}{Uploaded values were preserved after round-trip. \Pass\ \IR}
+\TC{TPL-09}{Runtime override precedence}{Uploaded default and channel groups then resolved the slice.}{Channel override won at runtime. \Pass\ \IR}
+\TC{TPL-10}{Unknown product rejection}{Uploaded a product not present in the workbook.}{Upload rejected; no write occurred. \PassFix\ \IR}
+\TC{TPL-11}{Unknown channel rejection}{Uploaded an invalid channel name.}{No orphan override file was created. \PassFix\ \IR}
+\TC{TPL-12}{Unknown variable rejection}{Introduced a variable-name typo.}{Upload rejected rather than silently excluding the intended variable. \PassFix\ \IR}
+\TC{TPL-13}{Duplicate row rejection}{Repeated the same product/channel/variable row.}{Upload rejected before writes. \PassFix\ \IR}
+\TC{TPL-14}{Bound ordering validation}{Set lower bound greater than or equal to upper bound.}{Upload rejected with a clear validation result. \Pass\ \IR}
+\TC{TPL-15}{Multi-group input atomicity}{Combined one valid and one invalid group.}{Neither group was written. \PassFix\ \IR}
+\TC{TPL-16}{Rejected upload revision behavior}{Passed a fully invalid file through the callback.}{Store/revision remained unchanged. \PassFix\ \IR}
+\TC{TPL-17}{Case normalization before grouping}{Mixed \code{ALL}/\code{all} and channel letter case.}{Equivalent groups collapsed to one canonical target. \PassFix\ \IR}
+\TC{TPL-18}{Whitespace normalization}{Uploaded padded product/channel/variable values.}{Values normalized before validation/routing. \Pass\ \IR}
+\TC{TPL-19}{Empty/no-op upload}{Uploaded headers with no valid rows.}{Upload rejected and no revision bump occurred. \PassFix\ \IR}
+\TC{TPL-20}{Unique stage files}{Inspected staged filenames for a multi-target upload.}{UUID-based temp names prevent same-process collisions. \PassFix\ \IR}
+\TC{TPL-21}{Serialization failure cleanup}{Injected a non-I/O serialization exception.}{Exception caught; partial temp removed; no target written. \PassFix\ \IR}
+\TC{TPL-22}{Commit failure with existing targets}{Injected failure on the second replace after backing up two targets.}{First target restored; second stayed intact. \PassFix\ \IR}
+\TC{TPL-23}{Commit failure with new targets}{Injected failure after creating the first new target.}{New target was removed during rollback. \PassFix\ \IR}
+\TC{TPL-24}{Rollback restore failure}{Injected an error while restoring an original.}{Status became ROLLBACK INCOMPLETE and the last backup copy was preserved. \PassFix\ \IR}
+\TC{TPL-25}{Rollback report accuracy}{Used three slices: one restored, one restore-failed, one uncommitted.}{Only the genuinely changed slice was reported as changed. \PassFix\ \IR}
+\TC{TPL-26}{Three-state callback behavior}{Exercised applied, rejected, and rollback-incomplete results.}{Applied/partial refresh UI; rejected leaves state untouched. \PassFix\ \IR}
+\TC{TPL-27}{Happy-path multi-target commit}{Uploaded two valid channel groups.}{Both targets committed and backups were removed. \Pass\ \IR}
+\TC{TPL-28}{Post-test cleanup}{Scanned configs for \code{uploadtmp}, \code{.bak}, and test overrides.}{No test artifacts remained. \Pass\ \IR\ \FR}
+\bottomrule
+\end{longtable}
+
+\subsection{E. Export Tab and Definitions}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{EXP-01}{Register Export tab}{Loaded navigation and switched screens.}{Export screen and controls rendered; callbacks registered. \Pass\ \IR}
+\TC{EXP-02}{Single-slice workbook}{Exported Brand 1 x Channel 1.}{Download payload was a valid XLSX. \Pass\ \IR}
+\TC{EXP-03}{Fit statistics sheet}{Opened \code{fit\_statistics}.}{R-squared, adjusted R-squared, MAPE, holdout, grade, and counts were present. \Pass\ \IR}
+\TC{EXP-04}{Fit structure sheet}{Opened \code{fit\_structure}.}{Columns exactly match the upload template, enabling edit/re-upload. \Pass\ \IR}
+\TC{EXP-05}{Weekly due-tos sheet}{Opened \code{weekly\_due\_tos}.}{Actual dates and tidy driver contributions were present. \Pass\ \IR}
+\TC{EXP-06}{Full reported date coverage}{Compared weekly due-to dates against the reported fit window.}{Zero missing dates after correcting the old split-only slice. \PassFix\ \IR}
+\TC{EXP-07}{All-slice aggregation}{Ran All combinations on a bounded one-product subset.}{Nine runnable slices aggregated successfully. \Pass\ \IR}
+\TC{EXP-08}{Fresh-data default creation}{Removed/restored a default around export.}{Export created the default through the shared entry and succeeded. \PassFix\ \IR}
+\TC{EXP-09}{Missing target isolation}{Requested a target absent from one product in All mode.}{Slice went to errors sheet; enumeration did not raise KeyError. \PassFix\ \IR}
+\TC{EXP-10}{Grade formatting in Excel}{Inspected openpyxl styles on the grade column.}{Moderate received amber fill and readable bold text; other grades follow their colors. \PassFix\ \IR}
+\TC{EXP-11}{All-slices-failed delivery}{Forced every slice to fail.}{Workbook still downloaded with accessible errors sheet. \PassFix\ \IR}
+\TC{EXP-12}{Input guards}{Called export without required target/window/slice selections.}{Clear status returned; no invalid download attempted. \Pass\ \IR}
+\TC{DEF-01}{Register Definitions tab}{Loaded navigation and rendered the new screen.}{All sections displayed without missing IDs. \Pass\ \IR}
+\TC{DEF-02}{Average weekly due-to definition}{Compared text to engine aggregation logic.}{Media uses execution weeks; other drivers use period weeks. \Pass\ \IR}
+\TC{DEF-03}{Grade range precision}{Checked threshold wording and code constants.}{Moderate is explicitly greater than 10\% and at most 40\%. \PassFix\ \IR}
+\TC{DEF-04}{Adstock scope precision}{Compared text to variable specs.}{Adstock applies to any variable with decay, typically but not exclusively media. \PassFix\ \IR}
+\TC{DEF-05}{Config precedence precision}{Compared text to Variables and batch behavior.}{Batch/export/CLI override-wins; Variables Run is WYSIWYG. \PassFix\ \IR}
+\TC{DEF-06}{Holdout formula revision}{Updated definitions after reserved-tail engine change.}{Text now reflects the always-reserved validation tail, with short-history/zero exceptions. \PassFix\ \IR}
+\TC{DEF-07}{Method structure wording}{Checked ``same coefficients'' versus ``same structure/process''.}{Definitions correctly state validation selects structure and full-window refit changes coefficients. \PassFix\ \IR}
+\TC{DEF-08}{Threshold interpolation}{Changed/read constants through definition rendering.}{Displayed thresholds are derived from code, not stale literals. \Pass\ \IR}
+\bottomrule
+\end{longtable}
+
+\subsection{F. Modeling Engine, Holdout, and Three-Year Robustness}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{MOD-01}{Always reserve validation tail}{Ran 52-, 104-, and 156-week windows on 156-week history.}{Each normal run retained an out-of-sample tail of up to 13 weeks. \Pass\ \IR\ \FR}
+\TC{MOD-02}{Avoid zero-holdout at full history}{Ran 156-week window on 156 weeks.}{Holdout MAPE was real, not NaN. \PassFix\ \IR\ \FR}
+\TC{MOD-03}{Validation structure selection}{Compared validation-selected variables with reported coefficient variables.}{Sets matched across tested brands/windows. \PassFix\ \IR}
+\TC{MOD-04}{No validation-tail leakage}{Inspected selection data boundaries.}{Structure selection used only pre-tail data. \Pass\ \IR}
+\TC{MOD-05}{Full-window reported refit}{Checked reported fit/contribution row counts.}{Coefficients and due-tos use the complete selected window. \Pass\ \IR}
+\TC{MOD-06}{Preserve holdout metric}{Compared in-sample MAPE and validation-tail MAPE.}{Metrics remain distinct; in-sample fit is not relabeled holdout. \Pass\ \IR}
+\TC{MOD-07}{104-week backward consistency}{Compared revised validation holdout with the prior training model.}{Holdout reproduced approximately 31.83\%. \Pass\ \IR\ \FR}
+\TC{MOD-08}{156-week holdout behavior}{Ran Brand 1 x Channel 1 at 156 weeks.}{Final holdout MAPE approximately 58.31\%. \Pass\ \IR\ \FR}
+\TC{MOD-09}{52-week final regression}{Ran Brand 1 x Channel 1 at 52 weeks.}{R2 0.946497; holdout MAPE 19.3178\%; nine predictors. \Pass\ \FR}
+\TC{MOD-10}{104-week final regression}{Ran Brand 1 x Channel 1 at 104 weeks.}{R2 0.883345; holdout MAPE 31.8339\%; nine predictors. \Pass\ \FR}
+\TC{MOD-11}{156-week final regression}{Ran Brand 1 x Channel 1 at 156 weeks.}{R2 0.810031; holdout MAPE 58.3078\%; nine predictors. \Pass\ \FR}
+\TC{MOD-12}{Multi-brand smoke}{Ran at least one additional product/slice after engine changes.}{Fit completed without structure/refit mismatch. \Pass\ \IR}
+\TC{MOD-13}{Three model-year contribution table}{Inspected 156-week \code{contrib\_by\_year}.}{Three year columns plus dynamic YoY fields rendered. \Pass\ \IR\ \FR}
+\TC{MOD-14}{Diagnostics fitted-line length}{Compared fitted values with full reported dates.}{Fitted line spans all reported weeks. \PassFix\ \IR}
+\TC{MOD-15}{CLI fitted-line length}{Checked single-slice runner plotting after refit.}{CLI plot uses full-window fitted values and tail forecast. \PassFix\ \IR}
+\TC{MOD-16}{CLI week labels}{Inspected result field names after refit.}{Uses \code{n\_weeks\_reported} and \code{holdout\_weeks}; no misleading split label. \PassFix\ \IR}
+\TC{MOD-17}{Sponsor estimator equivalence}{Ran the equivalence script from the repository root.}{PASS; final observed scale-normalized gap $1.69\times10^{-8}$. \Pass\ \RR\ \FR}
+\TC{MOD-18}{Scale-robust equivalence metric}{Tested a coefficient near zero.}{Metric no longer explodes by dividing by an approximately zero coefficient. \PassFix\ \IR}
+\TC{MOD-19}{Equivalence script path portability}{Ran the script outside the \code{code} directory.}{Data path resolves relative to the script; root invocation succeeds. \PassFix\ \RR\ \FR}
+\TC{MOD-20}{Current model-year counts}{Read final regression stores for all windows.}{52/104/156 produce 1/2/3 model years respectively. \Pass\ \FR}
+\bottomrule
+\end{longtable}
+
+\subsection{G. Contributions Time Selection, Mapping Upload, and Comparison}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{TIME-01}{Place period filter correctly}{Inspected Contributions card header.}{Filter is next to Avg weekly due-to per driver. \Pass\ \IR}
+\TC{TIME-02}{Entire-window equivalence}{Recomputed period aggregation and compared with engine average.}{Maximum difference was on the order of $10^{-11}$. \Pass\ \IR}
+\TC{TIME-03}{Media execution-week mask}{Compared selected weeks with raw execution indicators.}{Media averages only positive-execution weeks within the selected period. \Pass\ \IR}
+\TC{TIME-04}{Non-media period average}{Compared controls against all selected weeks.}{Non-media averages use every week in the period. \Pass\ \IR}
+\TC{TIME-05}{Year-period counts}{Checked Y1/Y2/Y3 selections on 156-week data.}{Each model year contains 52 weeks. \Pass\ \IR}
+\TC{TIME-06}{Latest 13 weeks}{Resolved the rolling selection.}{Exactly the latest 13 rows selected. \Pass\ \IR}
+\TC{TIME-07}{Latest 4 weeks}{Resolved the rolling selection.}{Exactly the latest four rows selected. \Pass\ \IR}
+\TC{TIME-08}{Calendar Q4}{Resolved latest October--December weeks.}{Q4 2025 selected 13 weeks, 2025-10-05 through 2025-12-28. \PassFix\ \RR\ \FR}
+\TC{TIME-09}{Stable Current year token}{Compared 104- and 156-week runs.}{Both map Current to 2025-01-05 through 2025-12-28. \PassFix\ \RR}
+\TC{TIME-10}{Stable Previous year token}{Compared 104- and 156-week runs.}{Both map Previous to 2024-01-07 through 2024-12-29. \PassFix\ \RR}
+\TC{TIME-11}{One-year Previous option}{Ran a 52-week window.}{Previous is hidden and resolves to an empty index defensively. \PassFix\ \RR}
+\TC{TIME-12}{Clamp stale Previous}{Passed \code{previous} into a new 52-week run.}{Initial chart/caption rendered Entire window, never a mislabeled Previous. \PassFix\ \RR}
+\TC{TIME-13}{Clear store on missing input}{Called Run without a datapath.}{Charts blanked and \code{contrib\_wk=None}. \PassFix\ \RR}
+\TC{TIME-14}{Clear store on invalid bounds}{Emulated Variables trigger with equal bounds.}{Run aborted and contribution store cleared. \Pass\ \RR}
+\TC{TIME-15}{Clear store on model exception}{Injected a \code{run\_slice} exception.}{Failure tuple cleared the contribution store. \Pass\ \RR}
+\TC{TIME-16}{Catch bad data path}{Passed a truthy nonexistent workbook path.}{Callback returned Model failed and cleared the store; no exception escaped. \PassFix\ \RR}
+\TC{TIME-17}{Empty store toggle}{Called period redraw with no contribution store.}{Returned \code{no\_update} and did not repaint stale data. \Pass\ \RR}
+\TC{TIME-18}{Time-map valid CSV}{Uploaded date/period CSV.}{Store created period-to-date lists. \Pass\ \IR\ \RR}
+\TC{TIME-19}{Time-map valid XLSX}{Uploaded Excel dates with labels.}{Workbook parsed through the same map builder. \Pass\ \RR}
+\TC{TIME-20}{Multiple periods per date}{Mapped one week to Current Year and My Q4.}{Both mappings retained. \Pass\ \RR}
+\TC{TIME-21}{Deduplicate repeated rows}{Repeated an identical date/period row.}{Stored date appears once. \Pass\ \RR}
+\TC{TIME-22}{Run-scoped mapped options}{Included present and absent mapped periods.}{Present period shown; absent period hidden. \Pass\ \IR\ \RR}
+\TC{TIME-23}{Mapped Q4 selection}{Mapped the 13 Q4 weeks to My Q4 and selected it.}{Exactly 13 weeks used; caption includes ``mapped''. \Pass\ \IR\ \RR}
+\TC{TIME-24}{Missing-column map}{Uploaded a file without required columns.}{Clear error; existing store untouched. \Pass\ \RR}
+\TC{TIME-25}{Mixed valid/invalid dates}{Uploaded valid, empty, and garbage dates together.}{Bad rows skipped and reported by spreadsheet row number; valid rows loaded. \PassFix\ \RR}
+\TC{TIME-26}{All-invalid dates}{Uploaded only empty/garbage dates.}{Clear message and \code{no\_update} store result. \PassFix\ \RR}
+\TC{TIME-27}{Mixed date formats}{Mixed ISO and MM/DD/YYYY strings in one CSV.}{Both valid dates parsed with mixed-format handling. \PassFix\ \RR}
+\TC{TIME-28}{Same-name map refresh}{Re-uploaded map X with a different assigned week.}{Because \code{time\_map} is an Input, chart value updated from 1 to 9. \PassFix\ \RR}
+\TC{TIME-29}{Removed mapped period clamp}{Removed the selected mapped label.}{Redraw clamps to Entire window. \PassFix\ \RR}
+\TC{TIME-30}{No-comparison fallback}{Selected No comparison.}{Single trace and single-period caption retained. \Pass\ \RR}
+\TC{TIME-31}{Current vs Previous comparison}{Ran 104 weeks with Current vs Previous.}{Two grouped traces share driver order; caption reports 52 vs 52 weeks. \Pass\ \RR}
+\TC{TIME-32}{Invalid comparison clamp}{Passed a missing mapped compare token.}{Single trace returned. \Pass\ \RR}
+\TC{TIME-33}{Exclude primary from compare options}{Built compare options with Current selected.}{Current token absent from compare list. \PassFix\ \RR}
+\TC{TIME-34}{Reset collision after primary change}{Changed primary to the current compare token.}{Compare callback resets value to none. \PassFix\ \RR}
+\TC{TIME-35}{Defensive A-vs-A guard in redraw}{Called redraw with identical period and compare.}{Single trace returned; no ``A vs A'' caption. \PassFix\ \RR}
+\TC{TIME-36}{Defensive A-vs-A guard in Run}{Ran the model with identical period/compare state.}{Run output contained one trace. \PassFix\ \RR}
+\TC{TIME-37}{Same dates, distinct tokens}{Compared built-in Q4 with mapped MyQ4 over the same 13 dates.}{Two traces remained allowed, preserving a mapping-validation use case. \Pass\ \RR}
+\TC{TIME-38}{Map re-upload callback dependency}{Inspected callback map after E3 fix.}{Redraw inputs include period, compare, and time map; contribution store remains State. \Pass\ \RR}
+\TC{TIME-39}{Compare option dependency}{Inspected callback map after A-vs-A fix.}{Compare options depend on primary period and reset collisions. \Pass\ \RR}
+\TC{TIME-40}{Final 52/104/156 trace behavior}{Ran Current vs Previous state across all windows.}{52 clamps to one trace; 104 and 156 render two traces. \Pass\ \FR}
+\bottomrule
+\end{longtable}
+
+\subsection{H. Final Compilation, Registration, and Workspace Hygiene}
+
+\begin{longtable}{L{1.55cm}L{5.2cm}L{5.25cm}L{3.9cm}}
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Objective} & \textbf{Method / scenario} & \textbf{Result and evidence}\\
+\midrule
+\endhead
+\TC{SMK-01}{Compile pipeline}{Ran \code{python -B -m py\_compile} on \code{capstone\_pipeline.py}.}{No syntax/import compile error. \Pass\ \FR}
+\TC{SMK-02}{Compile dashboard}{Ran \code{python -B -m py\_compile} on \code{dashboard.py}.}{No syntax/import compile error. \Pass\ \FR}
+\TC{SMK-03}{Compile batch runner}{Compiled \code{run\_all.py}.}{No syntax/import compile error. \Pass\ \FR}
+\TC{SMK-04}{Compile single-slice runner}{Compiled \code{run\_brand1\_channel1.py}.}{No syntax/import compile error. \Pass\ \FR}
+\TC{SMK-05}{Compile equivalence script}{Compiled the sponsor-equivalence script.}{No syntax/import compile error. \Pass\ \FR}
+\TC{SMK-06}{Register final dashboard}{Imported dashboard and ran the custom wiring validator.}{66 components / 27 callbacks; no missing component IDs. \Pass\ \FR}
+\TC{SMK-07}{Config diff hygiene}{Ran \code{git diff -- configs}.}{No config differences. \Pass\ \FR}
+\TC{SMK-08}{Temp/backup hygiene}{Scanned configs for upload temps, backup files, and test channel overrides.}{No matching artifacts. \Pass\ \FR}
+\TC{SMK-09}{Preserve unrelated batch output}{Reviewed Git status after final regression.}{Pre-existing modified batch summary left untouched. \Pass\ \RR\ \FR}
+\TC{SMK-10}{Source-count precision}{Compared final tracked source list with the report/tracker.}{Five source files plus one tracker document, not six source files. \Pass\ \RR}
+\TC{SMK-11}{Final equivalence from root}{Invoked the sponsor comparison from repository root.}{Path-independent execution and PASS result. \Pass\ \FR}
+\TC{SMK-12}{Final PowerPoint closure}{Compared the final tracker to all groups and repeated edge fixes.}{Every PowerPoint item is complete in the final tested state. \Pass\ \RR\ \FR}
+\bottomrule
+\end{longtable}
+
+\label{test-total}
+
+\section{Defect Discovery and Retest Summary}
+
+The session did not stop at happy-path verification. Review findings were converted into explicit regression tests. The most consequential defect families were:
+
+\begin{enumerate}
+  \item \textbf{Editor-to-run correctness:} Variables Run originally did not persist on-screen edits. The fix was retested with a concrete adstock change and with invalid bounds.
+  \item \textbf{Slice context correctness:} Context originally checked only product. Channel and target gating were added and tested.
+  \item \textbf{Configuration scope correctness:} Regenerate, Reset, no-channel fallback, and CLI resolution each had separate divergence or scope defects that were closed.
+  \item \textbf{Callback ordering:} Independent Save/Reset/read callbacks created races. A post-write \code{config\_rev} dependency was introduced and all writers were verified.
+  \item \textbf{Config authority:} Hidden CLI ACV forcing and the legacy root fallback could contradict the app. Both were removed and role-based behavior was tested in both directions.
+  \item \textbf{Template failure safety:} Unknown names, duplicates, bad channels, case collisions, empty uploads, partial validation, staging failures, mid-commit failures, restore failures, and concurrency were all fault-injected.
+  \item \textbf{Export failure safety:} New datasets, missing targets, colored grades, and all-failed workbooks were tested explicitly.
+  \item \textbf{Modeling validity:} The first full-refit implementation allowed validation and reported models to select different structures. The final design selects structure without tail leakage and refits that same structure on full data.
+  \item \textbf{Time-state correctness:} Contribution state clearing, 52-week Previous behavior, missing paths, map replacement, malformed dates, mixed formats, and A-vs-A comparison were each found during review and retested after repair.
+\end{enumerate}
+
+\section{Final Regression Snapshot}
+
+\begin{center}
+\begin{tabular}{L{2.0cm}rrrrrr}
+\toprule
+\textbf{Window} & \textbf{R2} & \textbf{Adj. R2} & \textbf{MAPE} & \textbf{Holdout} & \textbf{Selected} & \textbf{Years}\\
+\midrule
+52 weeks  & 0.946497 & 0.935032 & 7.8611\%  & 19.3178\% & 9 & 1\\
+104 weeks & 0.883345 & 0.872175 & 9.6023\%  & 31.8339\% & 9 & 2\\
+156 weeks & 0.810031 & 0.798320 & 13.1984\% & 58.3078\% & 9 & 3\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These values are a reproducibility snapshot for Brand 1 x Channel 1 with target Volume Sales on the local dataset and current config state. They are not universal performance guarantees for other products, channels, targets, configurations, or future data.
+
+\section{Reproducible Commands}
+
+\begin{lstlisting}[language=bash]
+# Compile the five modified Python sources
+python -B -m py_compile code/capstone_pipeline.py code/dashboard.py \
+  code/reference_alex_curvefit.py code/run_all.py \
+  code/run_brand1_channel1.py
+
+# Validate the final Dash component/callback graph
+python -B -c "import sys; sys.path.insert(0,'code'); \
+import dashboard; print(dashboard._validate_wiring())"
+
+# Run the sponsor-estimator equivalence test from the repository root
+python -B code/reference_alex_curvefit.py
+
+# Confirm no config drift or transaction artifacts
+git diff -- configs
+Get-ChildItem configs -File | Where-Object {
+  $_.Name -match 'uploadtmp|\.bak$|__ch_'
+}
+\end{lstlisting}
+
+\section{Limitations and Remaining Non-PowerPoint Work}
+
+\begin{itemize}
+  \item The runtime/scaling benchmark and its email are not included in the completed PowerPoint batch and remain a separate action unless completed elsewhere.
+  \item The grade thresholds (Good at most 10\%, Moderate above 10\% and at most 40\%, Bad above 40\%) are an internal product rule rather than a threshold specified in Alex's slides. The implementation is tested, but sponsor confirmation remains a policy question.
+  \item The configuration write lock is process-local. Multi-process deployments would require an OS-level or external distributed lock.
+  \item The current numeric regression values are dataset/config specific. Functional expectations, not exact metrics, should be used for future regression data.
+\end{itemize}
+
+\section{Conclusion}
+
+The final code state passed the named functional, failure-safety, modeling, callback, export, and regression tests recorded in this report. The review process materially strengthened the implementation: several initially plausible ``done'' states were downgraded, corrected, and only then retested to closure. On the evidence available in this workspace and session, every item from Alex's annotated PowerPoint is implemented and verified.
+
+\clearpage
+\begin{thebibliography}{9}
+
+\bibitem{alexdeck}
+Alex Hathcock.
+\newblock \emph{Dashboard Edits}.
+\newblock Six-slide annotated PowerPoint supplied to the Big Chalk Capstone team, July 2026.
+
+\bibitem{tracker}
+Big Chalk Capstone Team.
+\newblock \emph{Alex's Dashboard Edits -- Plan \& Tracker}.
+\newblock \path{docs/Alex_Dashboard_Edits_Plan.md}, accessed July 23, 2026.
+
+\bibitem{dashboard}
+Big Chalk Capstone Team.
+\newblock Dashboard implementation and callback graph.
+\newblock \path{code/dashboard.py}, working-tree version reviewed July 23, 2026.
+
+\bibitem{pipeline}
+Big Chalk Capstone Team.
+\newblock Marketing-mix modeling pipeline.
+\newblock \path{code/capstone_pipeline.py}, working-tree version reviewed July 23, 2026.
+
+\bibitem{runners}
+Big Chalk Capstone Team.
+\newblock Batch and single-slice runners.
+\newblock \path{code/run_all.py} and \path{code/run_brand1_channel1.py}, working-tree versions reviewed July 23, 2026.
+
+\bibitem{equivalence}
+Big Chalk Capstone Team.
+\newblock Sponsor-estimator equivalence test.
+\newblock \path{code/reference_alex_curvefit.py}, working-tree version reviewed July 23, 2026.
+
+\bibitem{dataset}
+Big Chalk Capstone Project.
+\newblock \emph{Anonymized Data for Project.xlsx}.
+\newblock Local test dataset, SHA-256 beginning \texttt{C4303D04B809A805}, inspected July 23, 2026.
+
+\bibitem{session}
+Boqi Niu and Codex.
+\newblock Implementation and independent review session for Alex's dashboard edits.
+\newblock Session evidence through July 23, 2026.
+
+\end{thebibliography}
+
+\end{document}

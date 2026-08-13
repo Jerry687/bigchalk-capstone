@@ -1,10 +1,12 @@
 ,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,376045.85994927754,(intercept),(intercept),,,376045.85994927766
-ACV Weighted Distribution,3520.5910410251686,Distribution,positive,yes,5.424325849319964,112907.27481487712
-Price per Volume,-30130.727575746132,Price,negative,,-7.995459355060245,-319121.3995131022
-Seasonality_Index,87885.77590273095,Seasonality,positive,,8.525229537179534,87885.77590273095
-Gas_Price,19126.29000158818,Macro,unconstrained,,3.142018855927166,61991.43230793602
-Weighted Weeks Feature and Display,655074.8407807726,Trade,positive,,3.8440058409158904,2606.846218554529
-Brand 0210_TikTok_Spend,0.17854429102180802,Media,positive,,3.659980028222018,6221.31931592754
-_C_Competitor8__Avg Weekly Items per Store Selling,-37560.77516726898,Competitive,negative,,-4.725974022166569,-105150.96042142203
-Unemployment_Rate,-16698.738431212852,Macro,unconstrained,,-5.016799401055479,-67967.07671088846
+const,293873.2757351764,(intercept),(intercept),,,293873.2757351763
+ACV Weighted Distribution,4347.246648366511,Distribution,positive,yes,6.855128026620677,138446.39261723275
+Seasonality_Index,84493.11846976099,Seasonality,positive,,8.109251092320887,84493.118469761
+Price per Volume,-28796.01944281374,Price,negative,,-6.839173995939953,-305301.13503211323
+_C_Competitor7__Weighted Weeks Price Reductions Only,-7663.971124488826,Competitive,negative,,-0.6518867976091136,-2501.151991557919
+_C_Competitor9__Weighted Weeks Price Reductions Only,-45326.299315929806,Competitive,negative,,-4.201302921691504,-7967.2097324510305
+T5YIE,-28062.074423275524,Macro,unconstrained,,-3.915633330061744,-65475.160579010895
+Weighted Weeks Feature and Display,620324.9085095626,Trade,positive,,3.6287422582996114,2626.3420717574727
+_C_Competitor9__Weighted Weeks Feature Only,-31300.333773807797,Competitive,negative,,-2.4132471109605937,-3899.935221674466
+Gas_Price,19436.799516044415,Macro,unconstrained,,3.478545178808702,62145.42860649125
+_C_Competitor8__Avg Weekly Items per Store Selling,-16370.829778196625,Competitive,negative,,-1.9601068220188385,-45590.25458843661

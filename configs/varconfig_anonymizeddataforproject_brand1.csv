@@ -1,80 +1,80 @@
-variable,family,sign,adstock_decay,coef_lower,coef_upper,role
-Price per Volume,Price,negative,,,,auto
-Total Category Price Per Volume,Category Price,positive,,,,auto
-Category P Price Per Volume,Category Price,positive,,,,auto
-ACV Weighted Distribution,Distribution,positive,,,,force
-Avg Weekly Items per Store Selling,Distribution,positive,,,,auto
-Total Points of Distribution,Distribution,positive,,,,auto
-Weighted Weeks Price Reductions Only,Trade,positive,,,,auto
-Weighted Weeks Feature Only,Trade,positive,,,,auto
-Weighted Weeks Display Only,Trade,positive,,,,auto
-Weighted Weeks Special Pack Only,Trade,positive,,,,auto
-Weighted Weeks Feature and Display,Trade,positive,,,,auto
-Brand 1_Meta_Spend,Media,positive,0.5,,,auto
-Brand 1_TikTok_Spend,Media,positive,0.5,,,auto
-Brand 1_Google_Ads_Spend,Media,positive,0.2,,,auto
-Brand 1_Walmart_Spend,Media,positive,0.5,,,auto
-Brand 1_Amazon_Spend,Media,positive,0.5,,,auto
-Brand 1_Instacart_Spend,Media,positive,0.5,,,auto
-Brand 1_Doordash_Spend,Media,positive,0.5,,,auto
-Brand 1_Absco_Spend,Media,positive,0.5,,,auto
-Brand 1_Ahold_Spend,Media,positive,0.5,,,auto
-Brand 1_Kroger_Spend,Media,positive,0.5,,,auto
-Brand 1_Instacart_Display_Spend,Media,positive,0.5,,,auto
-Brand 1_Instacart_CTV_Spend,Media,positive,0.7,,,auto
-Seasonality_Index,Seasonality,positive,,,,auto
-Trend,Trend,unconstrained,,,,auto
-Unemployment_Rate,Macro,unconstrained,,,,auto
-Median_CPI,Macro,unconstrained,,,,auto
-CFNAI,Macro,unconstrained,,,,auto
-Gas_Price,Macro,unconstrained,,,,auto
-UMCSENT,Macro,unconstrained,,,,auto
-T5YIE,Macro,unconstrained,,,,auto
-PSAVERT,Macro,unconstrained,,,,auto
-PCEC96,Macro,unconstrained,,,,auto
-SNAP_Participants,Macro,unconstrained,,,,auto
-Fedfunds,Macro,unconstrained,,,,auto
-Unempclaims,Macro,unconstrained,,,,auto
-Retail_Sales,Macro,unconstrained,,,,auto
-_C_Competitor6__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto
-_C_Competitor6__ACV Weighted Distribution,Competitive,negative,,,,auto
-_C_Competitor6__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
-_C_Competitor6__Weighted Weeks Feature Only,Competitive,negative,,,,auto
-_C_Competitor6__Weighted Weeks Display Only,Competitive,negative,,,,auto
-_C_Competitor6__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
-_C_Competitor6__Weighted Weeks Feature and Display,Competitive,negative,,,,auto
-_C_Competitor1__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto
-_C_Competitor1__ACV Weighted Distribution,Competitive,negative,,,,auto
-_C_Competitor1__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
-_C_Competitor1__Weighted Weeks Feature Only,Competitive,negative,,,,auto
-_C_Competitor1__Weighted Weeks Display Only,Competitive,negative,,,,auto
-_C_Competitor1__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
-_C_Competitor1__Weighted Weeks Feature and Display,Competitive,negative,,,,auto
-_C_Competitor2 __Avg Weekly Items per Store Selling,Competitive,negative,,,,auto
-_C_Competitor2 __ACV Weighted Distribution,Competitive,negative,,,,auto
-_C_Competitor2 __Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
-_C_Competitor2 __Weighted Weeks Feature Only,Competitive,negative,,,,auto
-_C_Competitor2 __Weighted Weeks Display Only,Competitive,negative,,,,auto
-_C_Competitor2 __Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
-_C_Competitor2 __Weighted Weeks Feature and Display,Competitive,negative,,,,auto
-_C_Competitor3__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto
-_C_Competitor3__ACV Weighted Distribution,Competitive,negative,,,,auto
-_C_Competitor3__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
-_C_Competitor3__Weighted Weeks Feature Only,Competitive,negative,,,,auto
-_C_Competitor3__Weighted Weeks Display Only,Competitive,negative,,,,auto
-_C_Competitor3__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
-_C_Competitor3__Weighted Weeks Feature and Display,Competitive,negative,,,,auto
-_C_Competitor4__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto
-_C_Competitor4__ACV Weighted Distribution,Competitive,negative,,,,auto
-_C_Competitor4__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
-_C_Competitor4__Weighted Weeks Feature Only,Competitive,negative,,,,auto
-_C_Competitor4__Weighted Weeks Display Only,Competitive,negative,,,,auto
-_C_Competitor4__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
-_C_Competitor4__Weighted Weeks Feature and Display,Competitive,negative,,,,auto
-_C_Competitor5__Avg Weekly Items per Store Selling,Competitive,negative,,,,auto
-_C_Competitor5__ACV Weighted Distribution,Competitive,negative,,,,auto
-_C_Competitor5__Weighted Weeks Price Reductions Only,Competitive,negative,,,,auto
-_C_Competitor5__Weighted Weeks Feature Only,Competitive,negative,,,,auto
-_C_Competitor5__Weighted Weeks Display Only,Competitive,negative,,,,auto
-_C_Competitor5__Weighted Weeks Special Pack Only,Competitive,negative,,,,auto
-_C_Competitor5__Weighted Weeks Feature and Display,Competitive,negative,,,,auto
+variable,family,sign,adstock_decay,scale,sat_midpoint,sat_slope,coef_lower,coef_upper,role
+Price per Volume,Price,negative,,1,,,,,auto
+Total Category Price Per Volume,Category Price,positive,,1,,,,,auto
+Category P Price Per Volume,Category Price,positive,,1,,,,,auto
+ACV Weighted Distribution,Distribution,positive,,1,,,,,force
+Avg Weekly Items per Store Selling,Distribution,positive,,1,,,,,auto
+Total Points of Distribution,Distribution,positive,,1,,,,,auto
+Weighted Weeks Price Reductions Only,Trade,positive,,1,,,,,auto
+Weighted Weeks Feature Only,Trade,positive,,1,,,,,auto
+Weighted Weeks Display Only,Trade,positive,,1,,,,,auto
+Weighted Weeks Special Pack Only,Trade,positive,,1,,,,,auto
+Weighted Weeks Feature and Display,Trade,positive,,1,,,,,auto
+Brand 1_Meta_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_TikTok_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Google_Ads_Spend,Media,positive,0.2,1,,,,,auto
+Brand 1_Walmart_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Amazon_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Instacart_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Doordash_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Absco_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Ahold_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Kroger_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Instacart_Display_Spend,Media,positive,0.5,1,,,,,auto
+Brand 1_Instacart_CTV_Spend,Media,positive,0.7,1,,,,,auto
+Seasonality_Index,Seasonality,positive,,1,,,,,auto
+Trend,Trend,unconstrained,,1,,,,,auto
+Unemployment_Rate,Macro,unconstrained,,1,,,,,auto
+Median_CPI,Macro,unconstrained,,1,,,,,auto
+CFNAI,Macro,unconstrained,,1,,,,,auto
+Gas_Price,Macro,unconstrained,,1,,,,,auto
+UMCSENT,Macro,unconstrained,,1,,,,,auto
+T5YIE,Macro,unconstrained,,1,,,,,auto
+PSAVERT,Macro,unconstrained,,1,,,,,auto
+PCEC96,Macro,unconstrained,,1,,,,,auto
+SNAP_Participants,Macro,unconstrained,,1000,,,,,auto
+Fedfunds,Macro,unconstrained,,1,,,,,auto
+Unempclaims,Macro,unconstrained,,1,,,,,auto
+Retail_Sales,Macro,unconstrained,,1,,,,,auto
+_C_Competitor6__Avg Weekly Items per Store Selling,Competitive,negative,,1,,,,,auto
+_C_Competitor6__ACV Weighted Distribution,Competitive,negative,,1,,,,,auto
+_C_Competitor6__Weighted Weeks Price Reductions Only,Competitive,negative,,1,,,,,auto
+_C_Competitor6__Weighted Weeks Feature Only,Competitive,negative,,1,,,,,auto
+_C_Competitor6__Weighted Weeks Display Only,Competitive,negative,,1,,,,,auto
+_C_Competitor6__Weighted Weeks Special Pack Only,Competitive,negative,,1,,,,,auto
+_C_Competitor6__Weighted Weeks Feature and Display,Competitive,negative,,1,,,,,auto
+_C_Competitor1__Avg Weekly Items per Store Selling,Competitive,negative,,1,,,,,auto
+_C_Competitor1__ACV Weighted Distribution,Competitive,negative,,1,,,,,auto
+_C_Competitor1__Weighted Weeks Price Reductions Only,Competitive,negative,,1,,,,,auto
+_C_Competitor1__Weighted Weeks Feature Only,Competitive,negative,,1,,,,,auto
+_C_Competitor1__Weighted Weeks Display Only,Competitive,negative,,1,,,,,auto
+_C_Competitor1__Weighted Weeks Special Pack Only,Competitive,negative,,1,,,,,auto
+_C_Competitor1__Weighted Weeks Feature and Display,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __Avg Weekly Items per Store Selling,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __ACV Weighted Distribution,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __Weighted Weeks Price Reductions Only,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __Weighted Weeks Feature Only,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __Weighted Weeks Display Only,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __Weighted Weeks Special Pack Only,Competitive,negative,,1,,,,,auto
+_C_Competitor2 __Weighted Weeks Feature and Display,Competitive,negative,,1,,,,,auto
+_C_Competitor3__Avg Weekly Items per Store Selling,Competitive,negative,,1,,,,,auto
+_C_Competitor3__ACV Weighted Distribution,Competitive,negative,,1,,,,,auto
+_C_Competitor3__Weighted Weeks Price Reductions Only,Competitive,negative,,1,,,,,auto
+_C_Competitor3__Weighted Weeks Feature Only,Competitive,negative,,1,,,,,auto
+_C_Competitor3__Weighted Weeks Display Only,Competitive,negative,,1,,,,,auto
+_C_Competitor3__Weighted Weeks Special Pack Only,Competitive,negative,,1,,,,,auto
+_C_Competitor3__Weighted Weeks Feature and Display,Competitive,negative,,1,,,,,auto
+_C_Competitor4__Avg Weekly Items per Store Selling,Competitive,negative,,1,,,,,auto
+_C_Competitor4__ACV Weighted Distribution,Competitive,negative,,1,,,,,auto
+_C_Competitor4__Weighted Weeks Price Reductions Only,Competitive,negative,,1,,,,,auto
+_C_Competitor4__Weighted Weeks Feature Only,Competitive,negative,,1,,,,,auto
+_C_Competitor4__Weighted Weeks Display Only,Competitive,negative,,1,,,,,auto
+_C_Competitor4__Weighted Weeks Special Pack Only,Competitive,negative,,1,,,,,auto
+_C_Competitor4__Weighted Weeks Feature and Display,Competitive,negative,,1,,,,,auto
+_C_Competitor5__Avg Weekly Items per Store Selling,Competitive,negative,,1,,,,,auto
+_C_Competitor5__ACV Weighted Distribution,Competitive,negative,,1,,,,,auto
+_C_Competitor5__Weighted Weeks Price Reductions Only,Competitive,negative,,1,,,,,auto
+_C_Competitor5__Weighted Weeks Feature Only,Competitive,negative,,1,,,,,auto
+_C_Competitor5__Weighted Weeks Display Only,Competitive,negative,,1,,,,,auto
+_C_Competitor5__Weighted Weeks Special Pack Only,Competitive,negative,,1,,,,,auto
+_C_Competitor5__Weighted Weeks Feature and Display,Competitive,negative,,1,,,,,auto

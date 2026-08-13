@@ -1,11 +1,12 @@
 ,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,139051.6964008914,(intercept),(intercept),,,139051.69640089147
-ACV Weighted Distribution,1577.5933355056275,Distribution,positive,yes,4.682681518970715,61934.8503630991
-Weighted Weeks Display Only,510122.85202608566,Trade,positive,,7.610847851080806,22364.554904435998
-Seasonality_Index,59250.65223278276,Seasonality,positive,,9.794588146386703,59250.65223278277
-_C_Competitor3__Weighted Weeks Display Only,-110814.25506758029,Competitive,negative,,-5.434824459340607,-65192.87132712852
-T5YIE,-28765.617822109492,Macro,unconstrained,,-4.171175673636257,-66736.92482849167
-_C_Competitor2 __Weighted Weeks Display Only,-60920.92646611427,Competitive,negative,,-3.565820092873899,-20616.484153439946
-_C_Competitor6__Weighted Weeks Display Only,-205190.42169053887,Competitive,negative,,-3.8840760490913886,-60950.3145109138
-Brand 1_Amazon_Spend,1.2768357748022936,Media,positive,,3.738507965382806,8242.489931130116
-_C_Competitor6__Weighted Weeks Feature and Display,-174459.0975872177,Competitive,negative,,-3.3356450811210947,-6225.623055786507
+const,55556.43123289847,(intercept),(intercept),,,55556.43123289849
+ACV Weighted Distribution,3106.7005971969684,Distribution,positive,yes,11.968205745295771,122559.45759573363
+Weighted Weeks Display Only,317594.60402714193,Trade,positive,,4.191528473888106,12879.810887725953
+Seasonality_Index,61473.179684157854,Seasonality,positive,,11.055009262417268,61473.17968415786
+_C_Competitor3__Weighted Weeks Display Only,-118980.73598731536,Competitive,negative,,-7.149371979819554,-68637.34082463253
+T5YIE,-32130.588290562962,Macro,unconstrained,,-4.43902278571976,-74967.9227590452
+_C_Competitor6__Weighted Weeks Display Only,-146377.10796160207,Competitive,negative,,-3.685787476157544,-43169.40742365615
+_C_Competitor6__Weighted Weeks Feature and Display,-133779.99202294613,Competitive,negative,,-3.1689228759038475,-4619.412756128223
+Brand 1_Amazon_Spend,0.9999999999999999,Media,positive,,3.8645984053942524,5270.845924068297
+Weighted Weeks Feature and Display,512505.4848565023,Trade,positive,,2.6601844833953803,1156.7111550594095
+Brand 1_Google_Ads_Spend,0.033945715297239644,Media,positive,,0.7539872386575633,1403.968067494732
