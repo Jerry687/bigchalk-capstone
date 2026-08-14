@@ -1,5 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,994.9244129117463,(intercept),(intercept),,,994.9244129117465
-ACV Weighted Distribution,1358.4470954082185,Distribution,positive,yes,10.223614231780704,6509.7353242847585
-Seasonality_Index,5343.492288876814,Seasonality,positive,,8.004331477374338,5343.492288876815
-Price per Volume,-552.4163118468682,Price,negative,,-4.485738347706063,-5236.917782968459

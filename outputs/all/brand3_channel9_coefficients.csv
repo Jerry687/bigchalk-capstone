@@ -1,8 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,4733.848942245969,(intercept),(intercept),,,4733.848942245969
-ACV Weighted Distribution,453.5560075481659,Distribution,positive,yes,3.295845107035728,53808.0910350969
-Seasonality_Index,60088.966934665645,Seasonality,positive,,9.515410845255808,60088.966934665645
-BRAND 3_Doordash_Spend,2.712257835425829,Media,positive,,6.415019482886677,6656.047936820091
-CFNAI,-5563.588217194146,Macro,unconstrained,,-2.76118831164057,842.027678256114
-_C_COMPETITOR7__Avg Weekly Items per Store Selling,-1670.424409144816,Competitive,negative,,-1.3883764121304096,-17235.57466046115
-SNAP_Participants,-0.0009259021767888953,Macro,unconstrained,,-0.926506835797581,-38880.160476924786

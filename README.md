@@ -29,13 +29,16 @@ configs/                      Two-tier variable configs (auto-created; editable 
   varconfig_<dataset>_<brand>.csv            Product DEFAULT (applies to all channels)
   varconfig_<dataset>_<brand>__ch_<channel>.csv   optional Product × Channel OVERRIDE (wins)
   variable_config_legacy.csv                 legacy single-slice seed (unused; kept for reference)
-outputs/                      Generated charts and result CSVs (derived, anonymized)
-  all/                        Per-slice coefficient & contribution tables from run_all
+outputs/                      Experiment results worth keeping (derived, anonymized)
   all_models_summary.csv      Cross-slice summary (R², MAPE, grade), sorted by holdout MAPE
-docs/                         Project docs (briefs, findings, meeting prep, plans, reports)
-  Project_Brief.md · Findings.md · Phase1-2_Findings.md · Monday_Meeting_Prep.md
-  Meeting_Runbook_Jul21.md · Action_Items_Alex_Meeting_2026-07-21.md
-  Alex_Dashboard_Edits_Plan.md   feature plan/tracker for the July PowerPoint feedback (Groups 1–9)
+  multilevel_comparison.csv   Unpooled vs pooled vs hierarchical, per channel, same holdout
+  multilevel_summary_by_brand.csv   The same rolled up to one row per product
+  curve_optimizer_experiment.csv    Why the media-curve optimizer ships switched off
+  (per-slice tables from run_all land here too; regenerated on every run, not tracked)
+docs/                         Deliverables
+  BigChalk_Mix_Engine_User_Guide.docx/.pdf   how to use the dashboard, every button
+  build_user_guide.py         regenerates the guide (figures in docs/img/)
+  Media_Curves_Math.md        the adstock + Hill maths behind the media transforms
 local/                        NDA-only material kept out of git (decks, transcripts) — gitignored
 requirements.txt              pip install -r requirements.txt
 ```
@@ -92,4 +95,4 @@ structural change (e.g. Brand 1 × Channel 1's distribution collapse — forcing
 
 ## Change history
 - **Sponsor review (Alex, 2026-07-06):** adstock normalization + per-media decays · config-table variable mapping · custom coefficient bounds · force-include/exclude lists · configurable target · set-year window · due-tos by model year · execution-masked averages.
-- **PowerPoint feedback (July):** the run-control restructure, batch grade labels, chart data labels, VIF column, Variables context columns, two-tier config, template up/download, Export tab, Definitions tab, final-model-on-all-data, and the Contributions time filter. Item-by-item plan and status in `docs/Alex_Dashboard_Edits_Plan.md`.
+- **PowerPoint feedback (July):** the run-control restructure, batch grade labels, chart data labels, VIF column, Variables context columns, two-tier config, template up/download, Export tab, Definitions tab, final-model-on-all-data, and the Contributions time filter. All shipped; the Definitions screen and the user guide describe the behaviour.

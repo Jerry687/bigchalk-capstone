@@ -1,8 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,3481.8080904017957,(intercept),(intercept),,,3481.8080904017966
-ACV Weighted Distribution,14.983555776628648,Distribution,positive,yes,1.8933553649525754,316.2852316992507
-Seasonality_Index,4423.888452306661,Seasonality,positive,,9.498819683562827,4423.888452306661
-Price per Volume,-838.7703358017104,Price,negative,,-6.452459470583405,-7734.155846385883
-Unemployment_Rate,400.1206590798929,Macro,unconstrained,,2.6510616575373303,1628.5680287357563
-Avg Weekly Items per Store Selling,269.3528926011787,Distribution,positive,,4.639240130127129,1608.981567617011
-PSAVERT,435.8528814198668,Macro,unconstrained,,4.167339330559471,1957.1470732988248

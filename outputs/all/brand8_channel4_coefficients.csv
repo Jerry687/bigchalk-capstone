@@ -1,6 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,-4765.440877151647,(intercept),(intercept),,,-4765.440877151647
-ACV Weighted Distribution,533.3879691743228,Distribution,positive,yes,11.509629095606558,20220.99354921883
-Brand8_Google_Ads_Spend,0.004424136157012981,Media,positive,,0.5302094504071885,183.47308719154148
-Brand8_Instacart_Display_Spend,0.4705548113984399,Media,positive,,4.186524439594793,2048.398128798482
-_C_COMPETITOR2__Weighted Weeks Price Reductions Only,-699.7007523317135,Competitive,negative,,-1.7301401437715738,-647.4915638527867

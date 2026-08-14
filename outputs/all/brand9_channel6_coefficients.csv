@@ -1,7 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,12785.358953889448,(intercept),(intercept),,,12785.358953889447
-ACV Weighted Distribution,884.0781061321702,Distribution,positive,yes,7.811965562508075,7321.818617393047
-Seasonality_Index,6170.060986685668,Seasonality,positive,,9.730088439755804,6170.060986685667
-Fedfunds,1266.2124354369746,Macro,unconstrained,,3.2211722974604844,5473.250498908988
-Price per Volume,-2930.339334657863,Price,negative,,-3.079110930318401,-23109.352369730834
-Weighted Weeks Display Only,8180.343369949673,Trade,positive,,2.3463472300328787,276.1295666982465

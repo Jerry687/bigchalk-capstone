@@ -1,9 +1,0 @@
-brand,channel,window_start,window_end,n_weeks_reported,n_weeks_selling,n_weeks_holdout,n_selected,n_forced,R2,adj_R2,MAPE_in_pct,MAPE_holdout_pct,durbin_watson,n_sign_conflicts,top_positive_driver,top_negative_driver
-Brand 3,Channel 9,2024-01-07,2025-12-28,104,104,13,6,1,0.6278,0.6048,6.82,5.24,0.478,0,Seasonality_Index,SNAP_Participants
-Brand 3,Channel 7,2024-01-07,2025-12-28,104,104,13,7,1,0.9527,0.9493,3.76,6.04,1.254,0,ACV Weighted Distribution,Price per Volume
-Brand 3,Channel 2,2024-01-07,2025-12-28,104,104,13,8,1,0.8961,0.8874,3.69,6.07,1.467,0,Seasonality_Index,Price per Volume
-Brand 3,Channel 4,2024-01-07,2025-12-28,104,104,13,3,1,0.8932,0.89,4.14,6.96,0.788,0,ACV Weighted Distribution,_C_COMPETITOR3__Avg Weekly Items per Store Selling
-Brand 3,Channel 6,2024-01-07,2025-12-28,104,104,13,8,1,0.8842,0.8744,4.62,7.02,1.444,0,ACV Weighted Distribution,Price per Volume
-Brand 3,Channel 3,2024-01-07,2025-12-28,104,104,13,3,1,0.5851,0.5727,7.8,7.7,1.49,0,ACV Weighted Distribution,Price per Volume
-Brand 3,Channel 5,2024-01-07,2025-12-28,104,104,13,3,1,0.8029,0.797,6.61,7.98,1.83,0,ACV Weighted Distribution,Price per Volume
-Brand 3,Channel 1,2024-01-07,2025-12-28,104,104,13,7,1,0.8997,0.8924,3.48,8.65,1.251,0,Seasonality_Index,Unempclaims

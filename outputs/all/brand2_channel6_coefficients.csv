@@ -1,9 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,-30046.415325902708,(intercept),(intercept),,,-30046.415325902697
-ACV Weighted Distribution,1051.9489646652682,Distribution,positive,yes,8.188106206164194,51632.30168327591
-Seasonality_Index,53558.396943736676,Seasonality,positive,,19.453456546319373,53558.396943736676
-_C_Competitor6__Avg Weekly Items per Store Selling,-1277.5472032372036,Competitive,negative,,-2.3754487223204754,-20066.33408426365
-Weighted Weeks Price Reductions Only,277431.823832483,Trade,positive,,3.3244791246923,687.6281326006249
-Brand 0210_Instacart_Spend,0.008567937495399747,Media,positive,,0.5094920448364099,305.07346468444166
-T5YIE,-68.28060009940972,Macro,unconstrained,,-0.02507050639674441,-159.3140688213684
-Brand 0210_TTD_Walmart_Audio_Spend,0.1712986586559495,Media,positive,,0.9061185929652034,1771.2543739923324

@@ -1,6 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,-4628.607065331777,(intercept),(intercept),,,-4628.607065331778
-ACV Weighted Distribution,1730.1198746153973,Distribution,positive,yes,14.309580548237003,4159.071875837494
-Avg Weekly Items per Store Selling,1547.775996684892,Distribution,positive,,7.926437168212841,3385.755341418914
-Seasonality_Index,1172.6241366101954,Seasonality,positive,,3.601121381378809,1172.6241366101954
-BRAND 3_Absco_Spend,0.1989568717358452,Media,positive,,2.8201099952174236,159.44768611639068

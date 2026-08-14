@@ -1,8 +1,0 @@
-,coefficient,family,sign,forced,t_stat_OLS,avg_weekly_contribution
-const,-6831.928661529198,(intercept),(intercept),,,-6831.928661529198
-ACV Weighted Distribution,307.64347993553076,Distribution,positive,yes,20.509647948780767,3161.117295448103
-Seasonality_Index,2889.1348562555804,Seasonality,positive,,5.471211228782666,2889.1348562555804
-_C_COMPETITOR3__Weighted Weeks Price Reductions Only,-663.6050272473062,Competitive,negative,,-2.177895218220111,-75.22197282064086
-Unempclaims,0.017313781375378312,Macro,unconstrained,,1.9769911580200217,3867.7988720592725
-Brand8_Amazon_Spend,0.03700863946421684,Media,positive,,1.117022288490236,238.90569497542867
-T5YIE,1270.949306113328,Macro,unconstrained,,2.038866209605897,2948.6329418489336

@@ -1,8 +1,0 @@
-brand,channel,window_start,window_end,n_weeks_reported,n_weeks_selling,n_weeks_holdout,n_selected,n_forced,R2,adj_R2,MAPE_in_pct,MAPE_holdout_pct,durbin_watson,n_sign_conflicts,top_positive_driver,top_negative_driver
-Brand 1,Channel 5,2024-01-07,2025-12-28,104,104,13,5,1,0.972,0.9706,4.16,5.72,1.46,0,Avg Weekly Items per Store Selling,Price per Volume
-Brand 1,Channel 2,2024-01-07,2025-12-28,104,104,13,8,1,0.8918,0.8827,8.08,7.22,0.883,0,Seasonality_Index,Price per Volume
-Brand 1,Channel 4,2024-01-07,2025-12-28,104,104,13,9,1,0.9285,0.9216,8.02,14.09,1.232,0,ACV Weighted Distribution,_C_Competitor3__ACV Weighted Distribution
-Brand 1,Channel 9,2024-01-07,2025-12-28,104,104,13,7,1,0.7122,0.6912,15.11,19.85,0.746,0,ACV Weighted Distribution,Unemployment_Rate
-Brand 1,Channel 1,2024-01-07,2025-12-28,104,104,13,10,1,0.8829,0.8703,9.87,23.03,0.965,0,ACV Weighted Distribution,T5YIE
-Brand 1,Channel 3,2024-01-07,2025-12-28,104,104,13,5,1,0.8864,0.8806,13.39,48.03,1.376,0,ACV Weighted Distribution,Price per Volume
-Brand 1,Channel 7,2024-01-07,2025-12-28,104,104,13,3,1,0.8322,0.8272,19.45,356.59,0.393,0,ACV Weighted Distribution,PSAVERT
