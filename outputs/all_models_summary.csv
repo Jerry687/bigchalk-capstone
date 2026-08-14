@@ -1,81 +1,77 @@
-brand,channel,n_weeks_train,n_weeks_holdout,n_selected,n_forced,R2,adj_R2,MAPE_in_pct,MAPE_holdout_pct,durbin_watson,n_sign_conflicts,top_positive_driver,top_negative_driver
-Brand 6,Channel 5,104,13,4,1,0.9526,0.9507,1.7,1.4,1.887,0,Avg Weekly Items per Store Selling,_C_COMPETITOR4__Weighted Weeks Feature and Display
-Brand 6,Channel 7,104,13,6,1,0.961,0.9586,2.71,1.93,1.411,0,ACV Weighted Distribution,Weighted Weeks Display Only
-Brand 10,Channel 3,104,13,6,1,0.9413,0.9376,3.2,2.11,1.437,0,ACV Weighted Distribution,Price per Volume
-Brand 9,Channel 4,104,13,5,1,0.9469,0.9442,2.88,2.21,1.543,0,Seasonality_Index,_C_COMPETITOR3__Weighted Weeks Display Only
-Brand 10,Channel 2,104,13,9,1,0.9388,0.933,4.06,3.23,1.188,0,ACV Weighted Distribution,SNAP_Participants
-Brand 10,Channel 6,104,13,8,1,0.9116,0.9041,2.96,3.6,1.853,0,ACV Weighted Distribution,Price per Volume
-Brand 10,Channel 1,104,13,9,1,0.9454,0.9401,2.34,3.98,1.674,0,ACV Weighted Distribution,Price per Volume
-Brand 7,Channel 4,104,13,8,1,0.9451,0.9405,2.13,4.05,1.77,0,Seasonality_Index,_C_COMPETITOR4__Avg Weekly Items per Store Selling
-Brand 5,Channel 9,104,13,10,1,0.8127,0.7926,3.91,4.09,0.723,0,Seasonality_Index,Unemployment_Rate
-Brand 5,Channel 4,104,13,9,1,0.8958,0.8858,5.45,4.47,1.066,0,ACV Weighted Distribution,_C_COMPETITOR4__Weighted Weeks Display Only
-Brand 4,Channel 3,104,13,6,1,0.891,0.8843,3.2,4.8,1.391,0,SNAP_Participants,Price per Volume
-Brand 3,Channel 1,104,13,8,1,0.9251,0.9188,2.79,4.82,1.866,0,Seasonality_Index,_C_COMPETITOR7__Avg Weekly Items per Store Selling
-Brand 5,Channel 1,104,13,5,1,0.791,0.7803,6.07,4.88,1.674,0,Seasonality_Index,Price per Volume
-Brand 3,Channel 2,104,13,11,1,0.8854,0.8717,3.98,4.89,1.665,0,Seasonality_Index,Price per Volume
-Brand 3,Channel 3,104,13,6,1,0.9339,0.9298,4.1,4.9,1.985,0,Seasonality_Index,Price per Volume
-Brand 5,Channel 3,104,13,8,1,0.7903,0.7726,7.02,4.92,1.744,0,Seasonality_Index,Price per Volume
-Brand 10,Channel 5,104,13,8,1,0.8337,0.8197,3.12,4.93,1.788,0,Seasonality_Index,Price per Volume
-Brand 10,Channel 4,104,13,11,1,0.9544,0.949,3.03,4.96,1.375,0,ACV Weighted Distribution,SNAP_Participants
-Brand 10,Channel 7,104,13,6,1,0.991,0.9904,3.16,5.35,1.319,0,Avg Weekly Items per Store Selling,Price per Volume
-Brand 7,Channel 1,104,13,9,1,0.8976,0.8878,3.61,5.52,2.175,0,Seasonality_Index,Price per Volume
-Brand 3,Channel 7,104,13,6,1,0.9452,0.9418,3.63,5.52,1.515,0,ACV Weighted Distribution,Price per Volume
-Brand 7,Channel 3,104,13,6,1,0.9106,0.9051,4.22,5.64,1.925,0,Seasonality_Index,Price per Volume
-Brand 3,Channel 6,104,13,9,1,0.8774,0.8656,5.11,5.79,1.504,0,Seasonality_Index,Price per Volume
-Brand 8,Channel 4,104,13,4,1,0.7045,0.6926,12.83,5.91,0.544,0,ACV Weighted Distribution,_C_COMPETITOR2__Weighted Weeks Price Reductions Only
-Brand 2,Channel 1,104,13,8,1,0.9071,0.8992,3.6,6.09,1.462,0,ACV Weighted Distribution,Price per Volume
-Brand 1,Channel 5,104,13,4,1,0.9782,0.9773,4.71,6.17,1.161,0,Avg Weekly Items per Store Selling,Price per Volume
-Brand 7,Channel 5,104,13,7,1,0.8651,0.8553,4.34,6.57,2.077,0,ACV Weighted Distribution,_C_COMPETITOR5__ACV Weighted Distribution
-Brand 4,Channel 2,104,13,9,1,0.8803,0.8688,3.5,6.74,1.601,0,SNAP_Participants,Gas_Price
-Brand 4,Channel 5,104,13,4,1,0.8057,0.7978,5.94,6.81,1.827,0,ACV Weighted Distribution,BRAND 3_Absco_Spend
-Brand 7,Channel 2,104,13,6,1,0.8302,0.8197,5.44,7.89,1.865,0,Seasonality_Index,Price per Volume
-Brand 4,Channel 7,104,13,5,1,0.8534,0.8459,4.71,8.09,0.708,0,Avg Weekly Items per Store Selling,_C_COMPETITOR1__Weighted Weeks Price Reductions Only
-Brand 3,Channel 5,104,13,4,1,0.802,0.794,6.71,8.22,1.826,0,ACV Weighted Distribution,Price per Volume
-Brand 3,Channel 9,104,13,9,1,0.6239,0.5879,7.53,8.33,0.553,0,Total Category Price Per Volume,_C_COMPETITOR7__Weighted Weeks Display Only
-Brand 2,Channel 6,104,13,4,1,0.8649,0.8595,5.26,8.75,1.058,0,ACV Weighted Distribution,_C_Competitor6__Avg Weekly Items per Store Selling
-Brand 2,Channel 3,104,13,7,1,0.8425,0.831,5.88,9.02,1.669,0,ACV Weighted Distribution,Price per Volume
-Brand 3,Channel 4,104,13,5,1,0.9273,0.9236,2.98,9.17,1.749,0,ACV Weighted Distribution,_C_COMPETITOR3__Avg Weekly Items per Store Selling
-Brand 9,Channel 5,104,13,8,1,0.8701,0.8591,4.17,9.88,1.608,0,Avg Weekly Items per Store Selling,_C_COMPETITOR1__ACV Weighted Distribution
-Brand 8,Channel 5,104,13,3,1,0.8751,0.8713,2.98,9.94,0.768,0,Avg Weekly Items per Store Selling,Price per Volume
-Brand 9,Channel 7,104,13,6,1,0.982,0.9809,3.09,10.48,1.081,0,ACV Weighted Distribution,Price per Volume
-Brand 2,Channel 9,104,13,6,1,0.8922,0.8856,8.42,10.95,1.33,0,ACV Weighted Distribution,Price per Volume
-Brand 5,Channel 2,104,13,6,1,0.8502,0.8409,7.86,11.32,1.831,0,Seasonality_Index,Price per Volume
-Brand 8,Channel 2,104,13,9,1,0.8723,0.86,6.45,11.7,1.734,0,Seasonality_Index,Price per Volume
-Brand 5,Channel 7,104,13,6,1,0.9641,0.9618,7.21,14.57,1.756,0,Avg Weekly Items per Store Selling,PSAVERT
-Brand 8,Channel 9,104,13,9,1,0.6937,0.6644,10.49,15.11,0.574,0,ACV Weighted Distribution,_C_COMPETITOR4__Avg Weekly Items per Store Selling
-Brand 4,Channel 6,104,13,3,1,0.908,0.9052,14.94,15.54,1.25,0,ACV Weighted Distribution,_C_COMPETITOR3__Weighted Weeks Display Only
-Brand 10,Channel 9,104,13,10,1,0.9429,0.9368,6.81,15.96,1.301,0,UMCSENT,Price per Volume
-Brand 4,Channel 9,104,13,8,1,0.8677,0.8565,2.82,16.78,1.01,0,Seasonality_Index,T5YIE
-Brand 6,Channel 1,104,13,9,1,0.8567,0.843,2.35,17.26,1.479,0,Seasonality_Index,SNAP_Participants
-Brand 2,Channel 2,104,13,12,1,0.9462,0.9392,10.05,17.64,1.399,0,T5YIE,Gas_Price
-Brand 6,Channel 3,104,13,5,1,0.8549,0.8475,12.53,18.62,1.274,0,ACV Weighted Distribution,Price per Volume
-Brand 1,Channel 2,104,13,8,1,0.9068,0.899,9.68,20.33,0.809,0,SNAP_Participants,Brand 1_Absco_Spend
-Brand 5,Channel 5,104,13,4,1,0.8161,0.8087,8.67,20.48,1.564,0,ACV Weighted Distribution,Weighted Weeks Price Reductions Only
-Brand 9,Channel 3,104,13,8,1,0.6983,0.6729,6.37,20.59,1.571,0,ACV Weighted Distribution,_C_COMPETITOR10__ACV Weighted Distribution
-Brand 9,Channel 9,104,13,11,1,0.9191,0.9094,12.94,20.89,1.153,0,PSAVERT,Price per Volume
-Brand 8,Channel 6,104,13,6,1,0.917,0.9119,12.33,23.24,1.271,0,Unempclaims,_C_COMPETITOR3__Weighted Weeks Price Reductions Only
-Brand 4,Channel 1,104,13,7,1,0.7375,0.7184,5.91,23.39,1.195,0,ACV Weighted Distribution,SNAP_Participants
-Brand 1,Channel 9,104,13,6,1,0.6492,0.6275,14.71,23.64,0.784,0,ACV Weighted Distribution,Unemployment_Rate
-Brand 2,Channel 4,104,13,4,1,0.8842,0.8795,7.86,24.54,0.944,0,Total Category Price Per Volume,Price per Volume
-Brand 7,Channel 7,104,13,6,1,0.953,0.9501,6.67,27.19,1.462,0,Avg Weekly Items per Store Selling,Price per Volume
-Brand 9,Channel 2,104,13,8,1,0.9092,0.9015,5.32,30.5,1.612,0,Seasonality_Index,SNAP_Participants
-Brand 1,Channel 1,104,13,9,1,0.8282,0.8117,9.96,31.83,1.178,0,ACV Weighted Distribution,T5YIE
-Brand 9,Channel 1,104,13,6,1,0.7874,0.7742,7.78,32.67,1.211,0,ACV Weighted Distribution,_C_COMPETITOR10__ACV Weighted Distribution
-Brand 2,Channel 7,104,13,3,1,0.775,0.7683,30.33,36.73,2.046,0,ACV Weighted Distribution,Price per Volume
-Brand 1,Channel 4,104,13,7,1,0.8124,0.7987,16.35,39.43,0.419,0,Gas_Price,CFNAI
-Brand 8,Channel 3,104,13,13,1,0.9261,0.9155,3.53,39.8,1.935,0,Avg Weekly Items per Store Selling,Price per Volume
-Brand 1,Channel 3,104,13,7,1,0.8828,0.8742,11.64,44.71,1.458,0,ACV Weighted Distribution,Price per Volume
-Brand 8,Channel 1,104,13,13,1,0.9369,0.9277,2.19,51.15,1.706,0,PCEC96,_C_COMPETITOR1__ACV Weighted Distribution
-Brand 4,Channel 4,104,13,9,1,0.7434,0.7188,9.65,55.38,1.021,0,ACV Weighted Distribution,SNAP_Participants
-Brand 7,Channel 9,104,13,7,1,0.7903,0.775,7.2,58.78,1.444,1,Seasonality_Index,Price per Volume
-Brand 6,Channel 4,104,13,10,1,0.9414,0.9351,34.27,132.96,2.123,0,Unemployment_Rate,_C_COMPETITOR3__ACV Weighted Distribution
-Brand 6,Channel 6,104,5,5,1,0.6638,0.6466,72.29,135.96,1.723,0,Unempclaims,Price per Volume
-Brand 8,Channel 7,104,13,5,1,0.9276,0.9239,4.47,144.63,1.013,0,ACV Weighted Distribution,_C_COMPETITOR1__Avg Weekly Items per Store Selling
-Brand 1,Channel 7,104,13,5,1,0.9638,0.962,3.94,304.25,1.121,0,ACV Weighted Distribution,PSAVERT
-Brand 6,Channel 2,104,13,7,1,0.8847,0.8763,19.76,377.77,1.891,0,Total Category Price Per Volume,Price per Volume
-Brand 1,Channel 6,104,13,3,1,0.9413,0.9396,230.1,,0.596,0,ACV Weighted Distribution,T5YIE
-Brand 1,Channel 8,25,0,3,1,0.7616,0.7276,96.1,,2.003,0,ACV Weighted Distribution,PCEC96
-Brand 2,Channel 5,104,13,6,1,0.9982,0.9981,18.14,,0.909,0,ACV Weighted Distribution,Unemployment_Rate
-Brand 2,Channel 8,25,0,4,1,0.8331,0.7997,4.61,,2.121,0,Fedfunds,_C_Competitor8__Avg Weekly Items per Store Selling
-Brand 6,Channel 9,104,0,4,1,0.5619,0.5442,4.4,,0.938,1,Seasonality_Index,ACV Weighted Distribution
-Brand 9,Channel 6,67,0,5,1,0.9495,0.9454,16.97,,1.733,0,ACV Weighted Distribution,Price per Volume
+brand,channel,target,weeks,selling_weeks,n_selected,n_forced,R2,MAPE_in_pct,MAPE_holdout_pct,n_sign_conflicts
+Brand 6,Channel 5,Volume Sales,104,104,4,1,0.9506,1.69,1.65,0
+Brand 6,Channel 7,Volume Sales,104,104,4,1,0.959,2.56,2.45,0
+Brand 10,Channel 1,Volume Sales,104,104,9,1,0.9475,2.22,2.96,0
+Brand 4,Channel 3,Volume Sales,104,104,8,1,0.8672,3.56,3.75,2
+Brand 5,Channel 9,Volume Sales,104,104,10,1,0.8921,3.53,4.39,0
+Brand 10,Channel 6,Volume Sales,104,104,4,1,0.9076,2.72,4.6,0
+Brand 4,Channel 7,Volume Sales,104,104,5,1,0.9192,3.67,4.62,0
+Brand 10,Channel 5,Volume Sales,104,104,8,1,0.8163,3.19,4.71,0
+Brand 9,Channel 4,Volume Sales,104,104,5,1,0.9666,2.32,4.81,0
+Brand 3,Channel 9,Volume Sales,104,104,6,1,0.6278,6.82,5.24,0
+Brand 1,Channel 5,Volume Sales,104,104,5,1,0.972,4.16,5.72,0
+Brand 10,Channel 7,Volume Sales,104,104,6,1,0.9902,3.45,5.78,0
+Brand 10,Channel 4,Volume Sales,104,104,10,1,0.9504,3.04,5.8,0
+Brand 3,Channel 7,Volume Sales,104,104,7,1,0.9527,3.76,6.04,0
+Brand 5,Channel 1,Volume Sales,104,104,6,1,0.866,4.93,6.05,0
+Brand 3,Channel 2,Volume Sales,104,104,8,1,0.8961,3.69,6.07,0
+Brand 7,Channel 5,Volume Sales,104,104,5,1,0.8618,4.98,6.22,0
+Brand 10,Channel 2,Volume Sales,104,104,6,1,0.9456,3.88,6.37,0
+Brand 2,Channel 1,Volume Sales,104,104,10,1,0.9122,3.9,6.4,0
+Brand 7,Channel 3,Volume Sales,104,104,6,1,0.9127,4.4,6.41,0
+Brand 5,Channel 3,Volume Sales,104,104,9,1,0.8371,6.6,6.69,0
+Brand 3,Channel 4,Volume Sales,104,104,3,1,0.8932,4.14,6.96,0
+Brand 3,Channel 6,Volume Sales,104,104,8,1,0.8842,4.62,7.02,0
+Brand 4,Channel 5,Volume Sales,104,104,4,1,0.8048,6.28,7.04,0
+Brand 8,Channel 4,Volume Sales,104,104,5,1,0.7845,9.25,7.18,0
+Brand 1,Channel 2,Volume Sales,104,104,8,1,0.8918,8.08,7.22,0
+Brand 3,Channel 3,Volume Sales,104,104,3,1,0.5851,7.8,7.7,0
+Brand 3,Channel 5,Volume Sales,104,104,3,1,0.8029,6.61,7.98,0
+Brand 8,Channel 2,Volume Sales,104,104,7,1,0.9017,5.26,8.17,0
+Brand 7,Channel 1,Volume Sales,104,104,7,1,0.8932,4.1,8.5,0
+Brand 4,Channel 9,Volume Sales,104,104,8,1,0.8852,2.95,8.52,0
+Brand 3,Channel 1,Volume Sales,104,104,7,1,0.8997,3.48,8.65,0
+Brand 7,Channel 4,Volume Sales,104,104,7,1,0.9167,3.08,9.0,1
+Brand 9,Channel 7,Volume Sales,104,104,10,1,0.9864,2.88,9.12,0
+Brand 4,Channel 2,Volume Sales,104,104,8,1,0.8787,3.79,9.84,0
+Brand 4,Channel 6,Volume Sales,104,104,5,1,0.9338,10.96,10.42,0
+Brand 6,Channel 9,Volume Sales,104,104,6,1,0.6497,4.0,11.03,1
+Brand 5,Channel 2,Volume Sales,104,104,5,1,0.8164,7.91,11.51,0
+Brand 10,Channel 3,Volume Sales,104,104,5,1,0.7428,7.49,11.57,0
+Brand 2,Channel 6,Volume Sales,104,104,7,1,0.8615,5.19,11.58,0
+Brand 5,Channel 4,Volume Sales,104,104,7,1,0.7333,7.45,12.15,0
+Brand 2,Channel 2,Volume Sales,104,104,8,1,0.9381,9.37,12.84,0
+Brand 8,Channel 5,Volume Sales,104,104,4,1,0.8362,3.46,13.15,0
+Brand 2,Channel 9,Volume Sales,104,104,6,1,0.8503,9.08,13.22,0
+Brand 2,Channel 3,Volume Sales,104,104,5,1,0.8319,6.86,13.66,0
+Brand 1,Channel 4,Volume Sales,104,104,9,1,0.9285,8.02,14.09,0
+Brand 10,Channel 9,Volume Sales,104,104,7,1,0.9105,11.87,14.53,0
+Brand 9,Channel 2,Volume Sales,104,104,7,1,0.8693,6.29,14.88,0
+Brand 7,Channel 9,Volume Sales,104,104,3,1,0.6795,6.98,15.75,1
+Brand 9,Channel 5,Volume Sales,104,104,6,1,0.7884,5.63,15.8,0
+Brand 7,Channel 2,Volume Sales,104,104,5,1,0.7846,5.5,16.03,0
+Brand 6,Channel 1,Volume Sales,104,104,8,1,0.7234,3.79,16.63,0
+Brand 5,Channel 7,Volume Sales,104,104,6,1,0.9267,9.26,17.19,0
+Brand 5,Channel 5,Volume Sales,104,104,3,1,0.8292,8.2,17.33,0
+Brand 9,Channel 9,Volume Sales,104,104,9,1,0.8516,16.68,18.76,0
+Brand 1,Channel 1,Volume Sales,104,104,10,1,0.8892,9.69,19.64,0
+Brand 1,Channel 9,Volume Sales,104,104,7,1,0.7122,15.11,19.85,0
+Brand 8,Channel 3,Volume Sales,104,104,10,1,0.9005,4.25,21.13,0
+Brand 4,Channel 1,Volume Sales,104,104,7,1,0.6447,7.13,21.22,0
+Brand 9,Channel 1,Volume Sales,104,104,6,1,0.8238,7.57,21.66,0
+Brand 9,Channel 6,Volume Sales,67,67,4,1,0.829,22.49,24.67,0
+Brand 7,Channel 7,Volume Sales,104,104,5,1,0.9314,7.91,25.27,0
+Brand 8,Channel 1,Volume Sales,104,104,15,1,0.9369,2.29,25.83,1
+Brand 6,Channel 3,Volume Sales,104,104,6,1,0.7941,15.68,28.36,0
+Brand 4,Channel 4,Volume Sales,104,104,6,1,0.6899,12.17,29.06,0
+Brand 2,Channel 4,Volume Sales,104,104,7,1,0.9099,8.51,30.3,0
+Brand 9,Channel 3,Volume Sales,104,104,7,1,0.6994,7.8,30.32,0
+Brand 8,Channel 9,Volume Sales,104,104,9,1,0.7744,9.8,31.75,1
+Brand 8,Channel 6,Volume Sales,104,104,2,1,0.8767,16.56,35.75,0
+Brand 2,Channel 7,Volume Sales,104,104,4,1,0.7702,29.29,38.06,0
+Brand 1,Channel 3,Volume Sales,104,104,5,1,0.8864,13.39,48.03,0
+Brand 8,Channel 7,Volume Sales,104,104,14,1,0.9085,5.59,75.64,0
+Brand 6,Channel 4,Volume Sales,104,104,5,1,0.9138,43.57,134.36,0
+Brand 6,Channel 6,Volume Sales,104,104,5,1,0.6659,73.44,146.81,0
+Brand 1,Channel 7,Volume Sales,104,104,3,1,0.8322,19.45,356.59,0
+Brand 6,Channel 2,Volume Sales,104,104,7,1,0.944,57.61,371.44,0

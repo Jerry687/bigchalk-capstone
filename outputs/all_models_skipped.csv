@@ -1,0 +1,7 @@
+brand,channel,weeks_in_window,selling_weeks,reason
+Brand 1,Channel 6,104,24,only 104 weeks (24 with non-zero Volume Sales) inside the modeling window 2024-01-07..2025-12-28 — needs 52 weeks / 26 selling weeks; not modeled
+Brand 1,Channel 8,0,0,only 0 weeks (0 with non-zero Volume Sales) inside the modeling window 2024-01-07..2025-12-28 — needs 52 weeks / 26 selling weeks; not modeled
+Brand 2,Channel 5,104,11,only 104 weeks (11 with non-zero Volume Sales) inside the modeling window 2024-01-07..2025-12-28 — needs 52 weeks / 26 selling weeks; not modeled
+Brand 2,Channel 8,0,0,only 0 weeks (0 with non-zero Volume Sales) inside the modeling window 2024-01-07..2025-12-28 — needs 52 weeks / 26 selling weeks; not modeled
+Brand 5,Channel 6,0,0,not sold in this channel (target is all zero)
+Brand 7,Channel 6,0,0,not sold in this channel (target is all zero)
