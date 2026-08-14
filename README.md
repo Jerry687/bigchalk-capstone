@@ -1,143 +1,389 @@
-# Big Chalk × Northwestern Capstone — Automated Regression Engine
+# Big Chalk Mix Engine
 
-Automated marketing-mix regression engine that models weekly **Volume Sales** (or any
-chosen target) for every **Brand × Retailer-Channel** combination, with a Plotly Dash
-UI for running, steering, and exporting models. Sponsored by **Big Chalk Analytics**
-(NU MSDS Summer 2026 Capstone).
+**Automated marketing-mix regression engine for Brand × Retailer-Channel volume forecasting.**
 
-**Team:** Feifan Liu · Boqi Niu · Jiahao Li (Edison)
+A configuration-driven modeling system that estimates weekly Volume Sales — or any
+chosen target — for every Brand × Channel combination in a client dataset, together
+with a Plotly Dash application for running, steering, diagnosing and exporting those
+models. The engine supports three levels of pooling (unpooled, pooled and
+hierarchical), media adstock and saturation transforms, and constrained estimation
+under analyst-supplied sign and coefficient bounds.
 
-## ⚠️ Confidential material — not in this repo
-The client dataset (`Anonymized Data for Project.xlsx`), all **decks/slides**
-(`*.pptx`), and **meeting transcripts** are covered by the Big Chalk NDA and are
-**excluded** via `.gitignore`. **Agent / AI-tooling files** used during development
-(`AGENTS.md`, `CODEX_HANDOFF.md`, `.agents/`, `.codex/`, `.claude/`, `*.inspect.ndjson`)
-are also gitignored — they are not part of the deliverable. NDA material lives in the
-gitignored `local/` folder. Obtain the data through the team's secure channel and place
-the workbook in the repo root before running.
+Developed as the Northwestern University MSDS Summer 2026 Capstone, sponsored by
+**Big Chalk Analytics**.
 
-## Repository layout
+| | |
+|---|---|
+| **Sponsor** | Big Chalk Analytics — Alex Hathcock (Senior Data Scientist), Arkaparna Sen |
+| **Institution** | Northwestern University, MSDS Capstone, Summer 2026 |
+| **Team** | Boqi Niu · Feifan Liu · Jiahao Li (Edison) |
+| **Stack** | Python 3.10+ · NumPy · pandas · SciPy · statsmodels · Plotly Dash |
+| **Status** | Feature complete; documentation delivered |
+
+---
+
+## Contents
+
+1. [Confidentiality](#1-confidentiality)
+2. [Overview](#2-overview)
+3. [Installation](#3-installation)
+4. [Usage](#4-usage)
+5. [Application](#5-application)
+6. [Methodology](#6-methodology)
+7. [Validation](#7-validation)
+8. [Results](#8-results)
+9. [Project structure](#9-project-structure)
+10. [Documentation](#10-documentation)
+11. [Release history](#11-release-history)
+
+---
+
+## 1. Confidentiality
+
+The client dataset (`Anonymized Data for Project.xlsx`), all presentation decks
+(`*.pptx`) and all meeting transcripts are covered by the Big Chalk Analytics
+non-disclosure agreement and are **excluded from this repository** by `.gitignore`.
+Confidential material is held in the gitignored `local/` directory.
+
+Development tooling files (`AGENTS.md`, `CODEX_HANDOFF.md`, `.agents/`, `.codex/`,
+`.claude/`) are likewise excluded; they are not part of the deliverable.
+
+The dataset must be obtained through the team's secure channel and placed in the
+repository root before the engine is run.
+
+---
+
+## 2. Overview
+
+Marketing-mix modeling attributes sales volume to the commercial levers a brand
+controls — distribution, price, promotion, media — while adjusting for competitive
+activity and macroeconomic conditions. Producing such a model for a single
+brand-channel pair is routine. Producing and maintaining one for every brand in every
+channel is not, and that is the problem this system addresses.
+
+The engine builds 76 models in approximately 17 seconds, grades each one, and directs
+the analyst's attention to the slices that require judgement rather than the ones that
+do not.
+
+### Capabilities
+
+| Capability | Description |
+|---|---|
+| **Automated estimation** | VIF pruning and forward stepwise selection choose the model structure; a bounded least-squares fit enforces the analyst's sign and coefficient constraints. |
+| **Configuration-driven framing** | Each variable's family, expected sign, bounds, adstock decay, saturation parameters and role are declared in a CSV. No variable names are hard-coded. |
+| **Media transforms** | Normalized geometric adstock for carry-over and Hill saturation for diminishing returns, applied in a defined order. |
+| **Multi-level modeling** | Unpooled, pooled and hierarchical estimation, scored on identical holdouts for direct comparison. |
+| **Response curve analysis** | Execution-versus-ROI curves with average/marginal crossover, identifying optimal spend levels. |
+| **Portfolio aggregation** | Roll-up of individual models to Total Brand or Total Channel views. |
+| **Reproducible export** | Excel workbooks containing fit statistics, model structure and weekly decompositions, formatted for pivot-table analysis. |
+
+---
+
+## 3. Installation
+
+**Requirements:** Python 3.10 or later.
+
+```bash
+git clone https://github.com/Jerry687/bigchalk-capstone.git
+cd bigchalk-capstone
+pip install -r requirements.txt
+```
+
+Place the client workbook in the repository root. The application detects worksheets,
+channels and candidate target columns automatically.
+
+---
+
+## 4. Usage
+
+### Application
+
+```bash
+cd code
+python dashboard.py
+```
+
+The application starts on `http://127.0.0.1:8050`. A startup integrity check validates
+every callback against the component layout and reports the result before serving.
+
+### Command line
+
+```bash
+cd code
+python run_brand1_channel1.py                     # Single slice, with EDA and diagnostics
+python run_all.py                                 # Full batch → outputs/all_models_summary.csv
+python run_all.py 1 3                             # Resumable batch, Brands 1–3
+python multilevel.py "../Anonymized Data for Project.xlsx" "Brand 4"
+                                                  # Three modeling levels for one product
+```
+
+### Verification
+
+```bash
+cd code
+python test_multilevel.py            # 37 numerical assertions
+python test_dashboard_screens.py     # 23 end-to-end interface assertions
+python reference_alex_curvefit.py    # Equivalence against the sponsor's implementation
+```
+
+---
+
+## 5. Application
+
+The interface follows the "Bench" design system (IBM Plex, chalk-navy) delivered
+through a Claude Design handoff. Nine screens are provided.
+
+| Screen | Purpose |
+|---|---|
+| **Diagnostics** | Fit metrics, actual-versus-fitted with the out-of-sample forecast on the reserved tail, residual analysis, and a coefficient table with family classification, t-statistics and variance inflation factors. |
+| **Variables** | The two-tier configuration editor: expected sign, adstock decay, scaling, saturation parameters, coefficient bounds and variable role, at product-default or product-channel-override scope. Supports bulk edit through template download and upload. |
+| **Contributions** | Decomposition of modeled volume by driver and period, with the contribution/due-to distinction, period comparison and an uploadable fiscal-period mapping. |
+| **High Level** | Aggregation of individual models to Total Brand, Total Channel or portfolio level, with overall fit, total contributions and year-over-year due-tos. |
+| **Saturation** | Weekly comparison of raw, adstocked and saturated execution with correlations to the target; interactive override of decay, midpoint and slope; and the execution-versus-ROI response curve with its optimal spend point. |
+| **Multi-Level** | Unpooled, pooled and hierarchical estimation for one product, scored on identical holdouts, with the national-predictor treatment, per-channel coefficient indices and the pooling-strength curve. |
+| **Model Runs** | Batch execution across all Brand × Channel combinations, with model grades, review flags and the register of slices deliberately not modeled. |
+| **Export** | Excel export for the current slice or the full portfolio. |
+| **Definitions** | Reference documentation for every metric, threshold and method, maintained alongside the implementation. |
+
+Run controls are confined to the Variables and Model Runs screens. All other screens
+filter cached results and perform no estimation. Configuration writes are serialized
+through a single process lock and committed transactionally.
+
+---
+
+## 6. Methodology
+
+### 6.1 Leakage prevention
+
+Decompositions of the target variable — `Volume Sales *`, `Dollar Sales *` — are
+excluded from the predictor set dynamically, according to whichever target is selected.
+
+### 6.2 Variable configuration
+
+A two-tier configuration governs model framing. Each variable is assigned a family,
+an expected sign, optional explicit coefficient bounds, a per-variable adstock decay,
+optional saturation parameters, a reporting scale, and a role:
+
+| Role | Behaviour |
+|---|---|
+| `auto` | Eligible for automated selection. |
+| `force` | Retained in every model; exempt from VIF pruning and family caps. |
+| `exclude` | Never considered. |
+
+A **product default** applies to all channels; an optional **product × channel
+override** takes precedence where present. A single resolver (`cp.resolve_config_path`)
+is shared by the application, the batch runner and the single-slice runner, ensuring
+all three agree.
+
+### 6.3 Estimation
+
+Model structure is selected by variance-inflation pruning followed by forward stepwise
+entry. The reported model is then fitted by **bounded least squares**, enforcing sign
+and coefficient constraints directly.
+
+Ridge regression cannot honour sign bounds; stepwise selection is more transparent to a
+client than Lasso; and variance-inflation analysis identifies multi-variable redundancy
+that pairwise correlation does not. The fit has been verified numerically equivalent to
+the sponsor's production `curve_fit` implementation to within 2 × 10⁻⁸ of the largest
+coefficient's scale.
+
+Selection strictness is adjustable through three presets (p < 0.01 / 0.05 / 0.15 with
+corresponding VIF thresholds) and an optional per-family entry cap, applied during
+selection rather than by post-hoc trimming.
+
+### 6.4 Media transforms
+
+Media variables are transformed in the order **raw → adstock → scale → saturation**.
+
+**Adstock** models carry-over: `aₜ = (1 − decay)·xₜ + decay·aₜ₋₁`, normalized so that
+adstocked totals approximate raw totals and never exceed them. Typical decays range from
+0.2 for search to 0.7 for connected television.
+
+**Hill saturation** models diminishing returns: `H(x) = xˢ / (xˢ + kˢ)`, where `k` is the
+half-saturation point and `s` the curve shape. Adstock is applied first because
+carry-over concerns when an impression lands; saturation last because diminishing
+returns apply to accumulated pressure rather than to weekly spend. This ordering matches
+Meta Robyn and Google Meridian.
+
+**Scaling** divides a variable before fitting so that its coefficient may be read in
+convenient units. This is a units transformation only: fitted values are identical to
+within 1.2 × 10⁻¹⁰.
+
+Saturation is disabled by default. The accompanying optimizer improves its own
+cross-validation score considerably more reliably than it improves the untouched
+holdout; supporting data is recorded in `outputs/curve_optimizer_experiment.csv`.
+
+### 6.5 Modeling window and validation
+
+The modeling window is an **absolute calendar range**, anchored to the latest week
+present in the dataset and identical for every slice.
+
+This is a correction of consequence. The window was previously the last *N* rows each
+slice happened to possess, which meant a slice delisted in mid-2023 continued to produce
+a model — estimated on 2023 data — that entered the weekly export as a disjoint segment
+of history. Slices with insufficient data inside the window (fewer than 52 weeks, or
+fewer than 26 weeks with non-zero sales) are **not modeled**, and are recorded with a
+stated reason rather than omitted silently.
+
+Within the window, a **validation model** selects structure on the weeks preceding a
+reserved 13-week tail and is scored on that tail, yielding the reported out-of-sample
+holdout MAPE. The **reported model** refits the same structure across the full window
+and supplies the coefficients and decompositions presented. The in-sample fit is never
+reported as a holdout result.
+
+### 6.6 Contributions and due-tos
+
+Two distinct quantities are maintained:
+
+| Quantity | Definition | Question answered |
+|---|---|---|
+| **Contribution** | Volume a driver accounts for *within* a period. | "How much of my volume is media?" |
+| **Due-to** | The change in a driver's contribution *between* two periods. | "Why is volume down year over year?" |
+
+Decompositions are additive, with the intercept reported as its own line. Weekly
+averages for media are computed only over weeks with actual execution. Periods of
+unequal length are compared on a per-week basis.
+
+Because coefficients on differently scaled variables cannot be ranked against one
+another, an **Impact / SD** measure — coefficient multiplied by standard deviation — is
+reported as the comparable quantity across drivers.
+
+### 6.7 Multi-level modeling
+
+Three levels of pooling are supported.
+
+| Level | Specification |
+|---|---|
+| **Unpooled** | One independent model per Brand × Channel. Maximum flexibility; approximately 104 observations per model. |
+| **Pooled** | One model per brand, with all channel-weeks stacked. One coefficient per predictor, estimated across 700–900 observations. |
+| **Hierarchical** | Per-channel coefficients formed as the pooled coefficient multiplied by an index derived from that channel's unconstrained fit, subject to a variance cap and a shrinkage parameter. |
+
+Stacking channels is admissible because these are models *of* a time series rather than
+time-series models: adstock and saturation are applied within each channel before
+stacking, leaving observations independent.
+
+Pooled estimation requires two preparatory steps. **National predictors** — those
+carrying identical values across all channels — are apportioned by each channel's share
+of brand volume, so that the per-channel components sum to the national quantity and a
+single shared coefficient does not multiply the effect by the channel count. **Channel
+intercepts**, implemented as within-channel mean centering, allow channels differing by
+a factor of thirty in scale to share slope coefficients without those coefficients
+absorbing a level difference.
+
+A shrinkage parameter λ interpolates between pooled (λ = 0) and fully indexed
+hierarchical (λ = 1) estimation, and is fitted on the holdout.
+
+### 6.8 Departures from specification
+
+Two implementation decisions depart from the sponsor's written brief. Both are
+documented in the source and in the user guide.
+
+1. **National-predictor apportionment.** The brief specifies division by each channel's
+   proportion of brand volume. Applied literally, this inflates contributions — the
+   opposite of the stated objective. The implementation multiplies by the share, so that
+   the per-channel components sum to the national quantity. The behaviour is isolated to
+   `multilevel.proportionalize_national`.
+
+2. **Sign guard on the hierarchy index.** The sponsor's specification contains no
+   constraint on index sign. On the client data the unconstrained index ranges from
+   −7.2 to +11.9, and a negative index inverts the sign of the final coefficient,
+   silently overriding the sign priors declared in the variable configuration. The index
+   is therefore clipped at zero.
+
+---
+
+## 7. Validation
+
+| Suite | Coverage |
+|---|---|
+| `test_multilevel.py` | 37 assertions. Reproduces the sponsor's `Hierarchical Modeling Explanation.xlsx` column by column to within 10⁻¹²; verifies the `SatCurve` port against an independent Hill computation; confirms national-predictor conservation, exact decomposition, and continuity between pooling levels. |
+| `test_dashboard_screens.py` | 23 assertions. Invokes every screen's callbacks directly and asserts a valid component tree rather than an error state. |
+| `reference_alex_curvefit.py` | Equivalence against the sponsor's production `curve_fit` approach. |
+| Startup integrity check | Validates every callback against the component layout at launch; the application refuses to start on a mismatch. |
+
+Regression status: all 76 unpooled models are numerically identical to a direct engine
+call, and the additive decomposition is exact to 4 × 10⁻¹⁵ across the portfolio.
+
+---
+
+## 8. Results
+
+**Portfolio.** 76 models; median R² **0.881**; median holdout MAPE **11.5 %**. Six
+slices are not modeled owing to insufficient data within the fixed window and are
+enumerated with reasons in `outputs/all_models_skipped.csv`.
+
+Slices with elevated error indicate structural change in the underlying business rather
+than deficiency in the method. Brand 1 × Channel 1 lost distribution during the modeling
+window; forcing `ACV Weighted Distribution` into the specification is what renders it
+tractable, at a holdout MAPE of 19.6 %.
+
+**Pooling.** No single level of pooling is universally preferable, which is itself the
+principal finding. Across ten products, unpooled estimation is preferred for seven and
+hierarchical for three; across the 76 individual channels, unpooled is preferred for 48,
+hierarchical for 16 and pooled for 12. Pooling benefits thin channels that would
+otherwise fit noise, and penalises the largest channel, which possesses sufficient data
+to be estimated independently. The fitted shrinkage parameter reaches 1 for four
+products and 0 for four others. Detail is recorded in `outputs/multilevel_comparison.csv`.
+
+---
+
+## 9. Project structure
+
 ```
 code/
-  capstone_pipeline.py        Core engine: load · adstock · Hill saturation · selection · constrained fit · contributions · config resolution
-  multilevel.py               Pooled and hierarchical models (one product, all channels stacked)
-  saturation_curves.py        SatCurve port (execution vs ROI) + the weekly raw/decayed/saturated diagnostic
-  rollup.py                   Total Brand / Total Channel aggregation
-  dashboard.py                Dash UI (Bench design), 9 screens — see "The UI" below
-  assets/bench.css            Bench design system (IBM Plex, chalk-navy) from the Claude Design handoff
-  run_brand1_channel1.py      Single-slice runner (EDA + model + charts + exports)
-  run_all.py                  Batch runner: every Brand × Channel (~17 s for all 76)
-  reference_alex_curvefit.py  Sponsor's curve_fit approach + equivalence test (matches to ~2e-8)
-  test_multilevel.py          37 numerical checks, incl. the sponsor's hierarchy spreadsheet
-  test_dashboard_screens.py   23 end-to-end checks driving every screen's callbacks
-configs/                      Two-tier variable configs (auto-created; editable via the dashboard)
-  varconfig_<dataset>_<brand>.csv            Product DEFAULT (applies to all channels)
-  varconfig_<dataset>_<brand>__ch_<channel>.csv   optional Product × Channel OVERRIDE (wins)
-  variable_config_legacy.csv                 legacy single-slice seed (unused; kept for reference)
-outputs/                      Experiment results worth keeping (derived, anonymized)
-  all_models_summary.csv      Cross-slice summary (R², MAPE, grade), sorted by holdout MAPE
-  all_models_skipped.csv      Slices not modeled, with the reason for each
-  multilevel_comparison.csv   Unpooled vs pooled vs hierarchical, per channel, same holdout
-  multilevel_summary_by_brand.csv   The same rolled up to one row per product
-  curve_optimizer_experiment.csv    Why the media-curve optimizer ships switched off
-  (per-slice tables from run_all land here too; regenerated on every run, not tracked)
-docs/                         Deliverables
-  BigChalk_Mix_Engine_User_Guide.docx/.pdf   how to use the dashboard, every button
-  build_user_guide.py         regenerates the guide (figures in docs/img/)
-  Media_Curves_Math.md        the adstock + Hill maths behind the media transforms
-local/                        NDA-only material kept out of git (decks, transcripts) — gitignored
-requirements.txt              pip install -r requirements.txt
+  capstone_pipeline.py          Core engine: loading, transforms, selection,
+                                constrained estimation, contributions, configuration
+  multilevel.py                 Pooled and hierarchical estimation
+  saturation_curves.py          Response curves and weekly transform diagnostics
+  rollup.py                     Portfolio aggregation
+  dashboard.py                  Plotly Dash application
+  assets/bench.css              Design system
+  run_brand1_channel1.py        Single-slice runner
+  run_all.py                    Batch runner
+  reference_alex_curvefit.py    Sponsor equivalence check
+  test_multilevel.py            Numerical test suite
+  test_dashboard_screens.py     Interface test suite
+configs/
+  varconfig_<dataset>_<brand>.csv                  Product default
+  varconfig_<dataset>_<brand>__ch_<channel>.csv    Product × channel override
+outputs/
+  all_models_summary.csv        Cross-slice fit summary
+  all_models_skipped.csv        Slices not modeled, with reasons
+  multilevel_comparison.csv     Pooling comparison by channel
+  multilevel_summary_by_brand.csv
+  curve_optimizer_experiment.csv
+docs/
+  BigChalk_Mix_Engine_User_Guide.docx / .pdf       Primary documentation
+  build_user_guide.py                              Documentation build script
+  Media_Curves_Math.md                             Transform derivations
+  img/                                             Figures and interface captures
+local/                          Confidential material (gitignored)
+requirements.txt
 ```
 
-## Quickstart
-```bash
-pip install -r requirements.txt
-# place "Anonymized Data for Project.xlsx" in the repo root, then:
-cd code
-python dashboard.py               # UI at http://127.0.0.1:8050  <- start here
-python run_brand1_channel1.py     # one slice, full EDA + diagnostics
-python run_all.py                 # all brands × channels -> outputs/all_models_summary.csv
-python run_all.py 1 3             # or in resumable chunks (Brand 1..3)
-python multilevel.py "../Anonymized Data for Project.xlsx" "Brand 4"   # three levels, one product
-```
+Per-slice run output is regenerated on every batch execution and is not tracked.
 
-Verification:
-```bash
-cd code
-python test_multilevel.py         # 37 checks: the sponsor's spreadsheet, SatCurve, conservation
-python test_dashboard_screens.py  # 23 checks: every screen's callbacks, end to end
-python reference_alex_curvefit.py # sponsor-equivalence check (run from anywhere)
-```
+---
 
-## Approach (summary)
-1. **No leakage** — decompositions of the target (`Volume Sales *`, `Dollar Sales *`) are excluded as predictors, dynamically for whatever target is chosen.
-2. **Config-driven framing (two-tier)** — a variable config maps each column to a family, expected sign, optional custom coefficient bounds (e.g. 0.10–0.25), a per-variable adstock decay, and a role (`auto` / `force` = client-mandated, bypasses selection & VIF pruning / `exclude`). A **Product default** applies to every channel; an optional **Product × Channel override wins** for that channel. The same resolver (`cp.resolve_config_path`) is shared by the dashboard, `run_all.py`, and the single-slice runner, so all three agree. No variable names are hard-coded — the engine absorbed Brand 2's `Brand 0210_*` naming quirk with zero code change.
-3. **Two-stage estimation** — automated selection (VIF prune + forward stepwise) picks the structure; the final model is a **sign/bound-constrained least squares** fit (Ridge can't honor sign bounds; stepwise is more transparent than Lasso; VIF catches multi-variable redundancy pairwise correlation misses). Verified numerically equivalent to the sponsor's production `curve_fit` approach on the reported model (`reference_alex_curvefit.py`, ~2e-8 of the largest coefficient's scale).
-4. **Media transforms: raw → adstock → scale → Hill.** Normalized adstock `a_t = (1−decay)·x_t + decay·a_{t−1}` so adstocked totals ≈ raw totals (never inflated); decay customizable per variable (search ≈ 0.2, CTV/TV ≈ 0.7, default 0.5). **Hill saturation** `H(x) = xˢ/(xˢ+kˢ)` supplies diminishing returns — adstock first because carry-over is about *when* an impression lands, saturation last because diminishing returns apply to accumulated pressure. Same order as Robyn and Meridian. Saturation is **off by default** (see `outputs/curve_optimizer_experiment.csv` for why: the optimizer improves its own CV score far more reliably than the untouched holdout). A `scale` column divides a variable before fitting so a coefficient reads "per 1,000 impressions" — units only, fitted values identical to 1.2e-10.
-5. **Fixed calendar window + always-reserved validation.** The window is an **absolute date range** anchored to the latest week in the whole workbook, *identical for every slice*. It used to be the last N *rows* each slice happened to have, which meant a slice delisted in mid-2023 still produced a model — from 2023 data — that leaked into the exports as a disjoint chunk of history. A slice without enough data inside the window (≥52 weeks, ≥26 selling) is **not modeled**, and appears in a "Not modeled" table with the reason rather than vanishing. Within the window, a **validation model** selects the structure on the weeks *before* an always-reserved 13-week tail and is scored on it → the out-of-sample **holdout MAPE**. The **reported model** refits that *same structure* on the full window → the coefficients shown. The all-data in-sample fit is never relabeled "holdout".
-6. **Contributions vs due-tos** — two different numbers, kept distinct: a **contribution** is a level (volume a driver accounts for *in* a period), a **due-to** is a change (contribution in B minus contribution in A). "Why am I down year on year" is the second. Additive, with the intercept as its own line; weekly averages computed **only over weeks with execution** for media; unequal-length periods compared per week automatically. **Impact / SD** (coefficient × standard deviation) is the comparable number across drivers — raw coefficients live on different supports and cannot be ranked against one another.
-7. **Three modeling levels** (`multilevel.py`) — **unpooled** (one model per Product × Channel), **pooled** (one model per product, every channel's weeks stacked, one coefficient per predictor), and **hierarchical** (each channel's coefficient = the pooled one × an index from that channel's own unconstrained fit, capped and shrunk). Legitimate because these are models *of* a time series, not time-series models: adstock and saturation are applied within each channel before stacking, so the rows are independent. Two things the pooled level requires — **national predictors** (identical in every channel) are split by each channel's share of product volume so the pieces sum back to the national figure, and **channel intercepts** (mean-centring within channel) let channels that differ 30× in size share slopes without the coefficients absorbing a level gap. A λ dial runs from pooled (0) to full index (1) and is fit on the holdout.
+## 10. Documentation
 
-## Performance
-Selection is exact but fast: VIFs come from the diagonal of the inverse correlation
-matrix (one inversion instead of k auxiliary regressions) and stepwise p-values from a
-direct normal-equations solve — ~10× faster than the statsmodels-per-candidate loop.
-Full batch: **76 models in ~17 s**, each fitting a validation model *and* a reported
-model. All three levels for one product take ~3 s.
+**`docs/BigChalk_Mix_Engine_User_Guide.docx`** is the primary deliverable: a 34-page
+guide covering every screen and control, common workflows, metric definitions,
+troubleshooting, and the reasoning behind the principal design decisions. It is
+regenerated by `docs/build_user_guide.py`.
 
-Results are **built once and cached**, keyed by (datafile, target, window, selection
-settings). Every result screen filters that cache in ~140 ms and never refits. Beyond
-speed this removes a real hazard: two screens cannot show numbers from two different
-fits, because only one set of results exists. Slices are embarrassingly parallel if
-further scale is ever needed.
+**`docs/Media_Curves_Math.md`** derives the adstock and Hill transforms.
 
-## The UI (Bench design)
-Plotly Dash app implementing the "Bench" direction from a Claude Design handoff. A
-startup wiring guard audits every callback against the layout (Dash silently disables
-callbacks referencing missing components when debug is off — learned the hard way).
-Loads **any client datafile** (sheets and targets auto-detected). Tabs:
+The **Definitions** screen within the application provides the same reference material
+adjacent to the figures it describes.
 
-- **Diagnostics** — metric strip (R², adj R², in-sample & holdout MAPE, DW, predictors), actual-vs-fitted with the out-of-sample forecast on the reserved tail, residuals, and a coefficient table with family chips, t-stat bars, and a **VIF** column (>10 flagged, non-blocking).
-- **Variables** — the two-tier config editor. A **CONFIG scope** selector (Product default / this channel) with status line; per-variable sign / adstock / bounds / role; **coef-now + due-to** context columns with a Y1/Y2/Total (or mapped period) toggle; hide-excluded filter; **Download / Upload template** (`.xlsx`/`.csv`, atomic, "unlisted = excluded"); Save / Regenerate / **Reset to default** / **Run** (a Variables run persists edits, then jumps to Diagnostics).
-- **Contributions** — due-to totals by model year, avg-weekly due-to per driver with a **period filter + "vs" comparison + uploadable time-map**, and a YoY table. Charts carry k/M data labels.
-- **High Level** — every Product × Channel rolled up to **Total Brand**, **Total Channel** or a grand total: overall fit, total contributions, YoY due-tos, and the member grid underneath. Aggregates model *output*, not a new model, so the decomposition stays exact (4e-15 across all 76). Reports WMAPE alongside MAPE, because at the total level "error volume ÷ actual volume" is the number that means anything, and warns when some slices don't cover the whole window.
-- **Saturation** — the weekly picture of what the engine actually fed the regression: **raw vs decayed vs decayed+saturated**, with each transform's correlation to the target and the target overlaid. Sliders for decay / midpoint / slope redraw everything live from the cached slice (no refit — the coefficient is held while the input's shape changes, and the screen says so). Below, the **execution-vs-ROI curve** ported from the sponsor's own `SatCurve` class, with the average/marginal crossover as the optimal spend level. A concave curve (slope < 1) has no crossover at all — provable from the Hill equation — and is reported as inconclusive rather than as advice to triple spend.
-- **Multi-Level** — the same product modeled **unpooled / pooled / hierarchical**, all scored on the same per-channel 13-week holdout by WMAPE, with the winning level called out per channel. Shows which predictors were treated as national, the per-channel coefficient index, the λ-vs-holdout curve, and how well one shared set of coefficients serves each channel. Flags predictors whose index is unstable (mean coefficient smaller than its spread across channels).
-- **Model Runs** (batch) — every Product × Channel with a **Good / Moderate / Bad Model** grade (colored cell), review flags, per-slice **Run model** and **Run all combinations**; click a row to load that slice. Slices deliberately not modeled appear underneath with the reason.
-- **Export** — one Excel (for the current slice or all combinations) with **fit statistics** (+ green/amber/red grade), **fit structure** (= the upload-template format, so export → edit → re-upload), and **weekly due-tos** (actual by date).
-- **Definitions** — plain-language definitions of every metric, the grade thresholds, roles, adstock, the two-tier config, and the window/holdout method (kept in sync with the code).
+---
 
-Run controls live only on **Variables** (tuning) and **Model Runs** (batch); hitting Run
-redirects to Diagnostics for the same slice. All config writes go through one process
-lock and a transactional (temp-file + rollback) commit.
+## 11. Release history
 
-## Batch results (all brands × channels)
-**76 models**, median R² **0.881**, median holdout MAPE **11.5 %**. Six slices are not
-modeled — too few weeks or too few selling weeks inside the fixed window — and are
-listed with reasons in `outputs/all_models_skipped.csv` rather than silently dropped.
-Per-slice grades in `outputs/all_models_summary.csv`.
-
-High-MAPE slices flag structural change rather than a broken tool: Brand 1 × Channel 1
-lost distribution part-way through the window, and forcing `ACV Weighted Distribution`
-into the model is what makes it tractable (holdout MAPE 19.6 %).
-
-Which modeling level wins is **not** constant, which is itself the finding
-(`outputs/multilevel_comparison.csv`): across the 10 products, unpooled wins 7 and
-hierarchical 3; across the 76 individual channels, unpooled 48, hierarchical 16, pooled
-12. Pooling helps thin channels that were fitting noise on their own and costs the large
-channel that had enough data to speak for itself. The fitted λ lands at 1 for four
-products and at 0 for four others.
-
-## Change history
-- **Sponsor review (Alex, 2026-07-06):** adstock normalization + per-media decays · config-table variable mapping · custom coefficient bounds · force-include/exclude lists · configurable target · set-year window · due-tos by model year · execution-masked averages.
-- **PowerPoint feedback (July):** the run-control restructure, batch grade labels, chart data labels, VIF column, Variables context columns, two-tier config, template up/download, Export tab, Definitions tab, final-model-on-all-data, and the Contributions time filter. All shipped; the Definitions screen and the user guide describe the behaviour.
-- **Review (Alex + Arko, 2026-07-27):** the **fixed calendar window** and `InsufficientWindowData` (see Approach #5 — this fixed a real leak Alex found by pivoting the export in Excel) · contribution/due-to split · results cache · Hill saturation and the media-curve optimizer · `scale` column · Impact / SD · selection strictness presets and per-family caps.
-- **Final update list (Alex, 2026-08-11):** the **High Level**, **Saturation** and **Multi-Level** screens · pooled and hierarchical models reproducing the sponsor's `Hierarchical Modeling Explanation.xlsx` to 1e-12 · his `SatCurve` class ported line-for-line · the interactive decay/midpoint/slope override he asked for on the call · and the **user guide** (`docs/`), the one item he called required rather than extra credit.
-
-Two places where the implementation departs from the brief, both deliberate and both
-documented in the code and the guide: national predictors are **multiplied** by each
-channel's share rather than divided by it (the literal reading inflates contributions,
-the opposite of the stated purpose — one line in `multilevel.proportionalize_national`),
-and a **sign guard** clips the hierarchy index at 0, because on real data the raw index
-runs −7.2 to +11.9 and a negative index silently undoes the sign priors set in the
-variable config.
+| Date | Scope |
+|---|---|
+| **2026-07-06** | Adstock normalization and per-media decays; configuration-table variable mapping; explicit coefficient bounds; force-include and exclude lists; configurable target; set-year window; due-tos by model year; execution-masked averages. |
+| **July 2026** | Run-control restructure; batch grading; chart data labels; VIF reporting; two-tier configuration; template upload and download; Export and Definitions screens; final model fitted on all data; contribution period filtering. |
+| **2026-07-27** | Fixed calendar window and insufficient-data handling (§6.5); contribution/due-to separation; results caching; Hill saturation and the curve optimizer; variable scaling; Impact / SD; selection strictness and family caps. |
+| **2026-08-11** | High Level, Saturation and Multi-Level screens; pooled and hierarchical estimation; response curve implementation; interactive transform override; user guide. |
